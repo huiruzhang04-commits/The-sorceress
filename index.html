@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>工作细胞 · 数学陪练</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'PingFang SC','Noto Sans SC',sans-serif;background:#1a0a0a;color:#f0e6e0;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+#app{max-width:768px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+
+/* Hero Canvas */
+#hero{position:relative;width:100%;height:240px;background:linear-gradient(180deg,#2d1010 0%,#1a0a0a 100%);overflow:hidden}
+#hero canvas{display:block;width:100%;height:100%}
+.hero-title{position:absolute;top:12px;left:0;right:0;text-align:center;pointer-events:none}
+.hero-title h1{font-size:22px;font-weight:900;letter-spacing:2px;background:linear-gradient(180deg,#fff,#ffcccc);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-title .sub{font-size:12px;color:#ffaaaa;opacity:.8}
+
+/* Progress */
+.progress-wrap{padding:16px 20px 8px}
+.progress-bar{height:6px;background:#3a2020;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#E85545,#ff6666);border-radius:3px;transition:width .4s}
+.progress-text{text-align:center;font-size:12px;color:#cc9999;margin-top:6px}
+
+/* Main Card */
+#main{flex:1;padding:0 20px 120px}
+.card{background:#2a1515;border:2px solid #4a2525;border-radius:16px;padding:24px 20px;margin-bottom:12px;display:none}
+.card.active{display:block}
+.card-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.card-icon{width:48px;height:48px;border-radius:50%;border:2px solid #E85545;overflow:hidden;flex-shrink:0;background:#1a0a0a}
+.card-icon img{width:100%;height:100%;object-fit:cover}
+.card .q-cat{font-size:12px;color:#E85545;font-weight:700;letter-spacing:1px}
+.card .q-title{font-size:18px;font-weight:700;color:#ffcccc;margin-bottom:16px}
+.card .q-body{font-size:16px;color:#ddcccc;line-height:1.7;margin-bottom:16px}
+.card .q-hint{font-size:13px;color:#89CFF0;background:rgba(137,207,240,.1);border-left:3px solid #89CFF0;padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:16px}
+.card .q-input{width:100%;padding:14px 16px;font-size:20px;border:2px solid #4a2525;border-radius:12px;background:#1a0a0a;color:#ffcccc;text-align:center;outline:none;transition:border-color .3s}
+.card .q-input:focus{border-color:#E85545}
+.card .q-input.correct{border-color:#4CAF50;background:rgba(76,175,80,.15)}
+.card .q-input.wrong{border-color:#E85545;background:rgba(232,85,69,.15);animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice-btn{padding:16px 12px;font-size:16px;border:2px solid #4a2525;border-radius:12px;background:#1a0a0a;color:#ddcccc;cursor:pointer;transition:all .2s;text-align:center}
+.choice-btn:active{transform:scale(.96)}
+.choice-btn.selected{border-color:#89CFF0;background:rgba(137,207,240,.15)}
+.choice-btn.correct{border-color:#4CAF50;background:rgba(76,175,80,.2);color:#4CAF50}
+.choice-btn.wrong{border-color:#E85545;background:rgba(232,85,69,.2);color:#E85545;animation:shake .4s}
+.choice-btn:disabled{pointer-events:none}
+.check-btn{width:100%;padding:14px;margin-top:14px;font-size:16px;font-weight:700;border:none;border-radius:12px;background:linear-gradient(135deg,#E85545,#c0392b);color:#fff;cursor:pointer}
+.check-btn:active{transform:scale(.97)}
+.check-btn:disabled{background:#555;cursor:not-allowed}
+
+/* Feedback + Method */
+.feedback{padding:14px 16px;border-radius:10px;margin-top:14px;font-size:14px;line-height:1.6;display:none}
+.feedback.show{display:block}
+.feedback.good{background:rgba(76,175,80,.15);border:1px solid #4CAF50;color:#81C784}
+.feedback.bad{background:rgba(232,85,69,.15);border:1px solid #E85545;color:#E57373}
+.method-box{padding:14px 16px;border-radius:10px;margin-top:12px;font-size:14px;line-height:1.8;display:none;background:rgba(137,207,240,.08);border:1px solid rgba(137,207,240,.3);color:#89CFF0}
+.method-box.show{display:block}
+.method-box .method-title{font-weight:700;color:#89CFF0;margin-bottom:6px;font-size:15px}
+
+/* Nav */
+#nav{position:fixed;bottom:0;left:0;right:0;max-width:768px;margin:0 auto;padding:12px 20px;padding-bottom:max(12px,env(safe-area-inset-bottom));background:rgba(26,10,10,.95);border-top:1px solid #3a2020;display:flex;gap:10px;z-index:100}
+.nav-btn{flex:1;padding:14px;font-size:15px;font-weight:700;border:2px solid #4a2525;border-radius:12px;background:#2a1515;color:#ddcccc;cursor:pointer;text-align:center;transition:all .2s}
+.nav-btn:active{transform:scale(.96)}
+.nav-btn.primary{background:linear-gradient(135deg,#E85545,#c0392b);border-color:transparent;color:#fff}
+.nav-btn:disabled{opacity:.4;pointer-events:none}
+
+/* Review & Report */
+#review-screen,#report-screen{display:none;flex:1;padding:20px 20px 100px}
+#review-screen.show,#report-screen.show{display:block}
+#review-screen h2,#report-screen h2{font-size:22px;color:#ffaaaa;margin-bottom:16px;text-align:center}
+.review-item{background:#2a1515;border:2px solid #4a2525;border-radius:12px;padding:16px;margin-bottom:12px}
+.review-item .rw-q{font-size:14px;color:#ddcccc;margin-bottom:8px}
+.review-item .rw-a{font-size:13px;color:#E57373;margin-bottom:4px}
+.review-item .rw-correct{font-size:13px;color:#81C784}
+.empty-state{text-align:center;padding:60px 20px;color:#776666}
+.empty-state .emoji{font-size:48px;margin-bottom:12px}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.report-card{background:#2a1515;border:2px solid #4a2525;border-radius:12px;padding:16px;text-align:center}
+.report-card .num{font-size:32px;font-weight:900;color:#E85545}
+.report-card .label{font-size:12px;color:#cc9999;margin-top:4px}
+.report-detail{background:#2a1515;border:1px solid #4a2525;border-radius:12px;padding:16px;margin-bottom:10px}
+.report-detail .rd-title{font-size:14px;font-weight:700;color:#ffaaaa;margin-bottom:8px}
+.report-detail table{width:100%;border-collapse:collapse}
+.report-detail td{padding:8px;font-size:13px;border-bottom:1px solid #3a2020;color:#ddcccc}
+.report-detail td:last-child{text-align:right}
+
+/* Complete */
+#complete-screen{display:none;padding:40px 20px;text-align:center;flex-direction:column;align-items:center;justify-content:center}
+#complete-screen.show{display:flex}
+#complete-screen .big-emoji{font-size:72px;margin-bottom:16px}
+#complete-screen h2{font-size:22px;color:#ffaaaa;margin-bottom:8px}
+#complete-screen p{color:#cc9999;margin-bottom:20px}
+
+/* Step inputs */
+.step-inputs{display:flex;flex-direction:column;gap:10px}
+.step-inputs .step-row{display:flex;align-items:center;gap:8px}
+.step-inputs .step-label{font-size:13px;color:#cc9999;min-width:60px}
+.step-inputs input{flex:1;padding:12px 14px;font-size:18px;border:2px solid #4a2525;border-radius:10px;background:#1a0a0a;color:#ffcccc;text-align:center;outline:none}
+.step-inputs input:focus{border-color:#E85545}
+
+/* Role icons for different questions */
+.icon-platelet{border-color:#89CFF0!important}
+.icon-wbc{border-color:#f5f5f5!important}
+.icon-bacteria{border-color:#9400D3!important}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-title">
+    <h1>🩸 工作细胞 · 数学陪练</h1>
+    <div class="sub">血小板队长陪你一起做题！</div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="progress-text" id="progressText">第 1/16 题</div>
+</div>
+
+<div id="main"></div>
+
+<div id="review-screen">
+  <h2>📋 错题回顾</h2>
+  <div id="reviewList"></div>
+  <button class="nav-btn primary" onclick="redoWrong()" style="width:100%;margin-top:12px">🔙 重做错题</button>
+</div>
+
+<div id="report-screen">
+  <h2>📊 家长报告</h2>
+  <div id="reportContent"></div>
+  <button class="nav-btn primary" onclick="goToQuiz()" style="width:100%;margin-top:12px">🔙 回到题目</button>
+</div>
+
+<div id="complete-screen">
+  <div class="big-emoji">🎉</div>
+  <h2>太棒了！血小板队长为你骄傲！</h2>
+  <p>所有题目都完成了</p>
+  <button class="nav-btn primary" onclick="showReview()" style="width:80%">📋 查看错题</button>
+  <button class="nav-btn" onclick="showReport()" style="width:80%;margin-top:8px">📊 家长报告</button>
+  <button class="nav-btn primary" id="btnRebattle" onclick="rebattle()" style="width:80%;margin-top:12px;display:none">⚔️ 重新作战</button>
+  <button class="nav-btn" onclick="resetQuiz()" style="width:80%;margin-top:8px">🔄 重新开始</button>
+</div>
+
+<div id="nav">
+  <button class="nav-btn" id="btnPrev" onclick="prevQuestion()">◀ 上一题</button>
+  <button class="nav-btn primary" id="btnNext" onclick="nextQuestion()" disabled>下一题 ▶</button>
+  <button class="nav-btn" id="btnReview" onclick="showReview()" style="display:none">📋 错题</button>
+</div>
+
+</div>
+
+<script>
+// ═══ QUESTIONS — Simplified Chinese ═══
+const METHOD_IMG = {
+  1:'listenhub-20260501-015553-xhuxuk.png',
+  2:'listenhub-20260501-014610-0uei1f.png',
+  3:'listenhub-20260501-015525-ypzzje.png',
+  4:'listenhub-20260501-014608-mdyzy2.png',
+  5:'listenhub-20260501-014723-2uvpp0.png',
+  6:'listenhub-20260501-014555-toys9i.png',
+  7:'listenhub-20260501-014604-ekfxst.png',
+  8:'listenhub-20260501-015719-g4pkx9.png'
+};
+const QUESTIONS = [
+  { id:1, type:'fill', category:'排队问题', title:'血小板排排队', icon:'platelet',
+    question:'血小板们在血管排成一队等红血球通过。小美前面有 7 个血小板，后面有 5 个。一共有多少个血小板在排队？',
+    hint:'💡 关键词提示："前面有…""后面有…"→ 加起来别忘了自己！',
+    answer:13 },
+  { id:2, type:'fill', category:'排队问题', title:'白细胞大个子', icon:'wbc',
+    question:'白细胞追细菌的时候排了 12 个白细胞。大个子白细胞在队伍里，后面有 4 个。请问大个子白细胞前面有几个？',
+    hint:'💡 关键词提示："队伍里""后面有"→ 从总数里找位置',
+    answer:7 },
+  { id:3, type:'choice', category:'排队问题', title:'巨噬细胞阿姨', icon:'bacteria',
+    question:'15 个巨噬细胞去看受伤的地方。巨噬细胞阿姨排第 8 个。请问阿姨后面还有几个？',
+    options:['6 个','7 个','8 个','5 个'], answer:1,
+    hint:'💡 关键词提示："排第几""后面还有"→ 总数减去位置' },
+  { id:4, type:'fill', category:'排队问题', title:'树突状细胞', icon:'platelet',
+    question:'树突状细胞在传送带上看地图。从前面数他排第 6，从后面数排第 4。一共有多少个树突状细胞？',
+    hint:'💡 关键词提示："从前面数""从后面数"→ 加起来减掉重复的自己',
+    answer:9 },
+  { id:5, type:'application', category:'加法应用题', title:'一起搬东西', icon:'platelet',
+    question:'血小板小队长搬了 28 个凝血因子，红细胞送了 14 个氧气包。一共有多少个？',
+    hint:'💡 关键词："一共"→ 用加法！分两步写哦～',
+    steps:[{label:'算式',answer:'28+14'},{label:'答案',answer:42}] },
+  { id:6, type:'application', category:'减法应用题', title:'消灭细菌', icon:'wbc',
+    question:'白细胞侦察兵发现了 43 个细菌，已经消灭了 17 个。还剩几个？',
+    hint:'💡 关键词："还剩"→ 用减法！',
+    steps:[{label:'算式',answer:'43-17'},{label:'答案',answer:26}] },
+  { id:7, type:'choice', category:'比较应用题', title:'巨噬细胞大餐', icon:'bacteria',
+    question:'巨噬细胞阿姨今天吃了 36 个细菌，昨天吃了 25 个。今天比昨天多吃几个？',
+    options:['9 个','10 个','11 个','12 个'], answer:2,
+    hint:'💡 关键词："比…多"→ 用减法！大数减小数' },
+  { id:8, type:'application', category:'减法逆向应用', title:'红细胞出差', icon:'wbc',
+    question:'血管里本来有 50 个红细胞，有一部分去肺里了，还剩 32 个。去了肺里的红细胞有几个？',
+    hint:'💡 关键词：问"去了几个"→ 原来 − 剩下的 = 去了的',
+    steps:[{label:'算式',answer:'50-32'},{label:'答案',answer:18}] },
+  // ═══ ⚔️ 进阶挑战 — 更难的应用题 ═══
+  { id:9, type:'application', category:'连加应用题', title:'三重任务', icon:'platelet',
+    question:'血小板小队长上午搬了 23 个凝血因子，下午搬了 19 个，晚上又搬了 8 个。今天一共搬了多少个？',
+    hint:'💡 关键词："上午…下午…晚上…一共"→ 三个数连加！',
+    steps:[{label:'算式',answer:'23+19+8'},{label:'答案',answer:50}] },
+  { id:10, type:'fill', category:'排队进阶', title:'两头数', icon:'wbc',
+    question:'白细胞在操场上排成了长方形队伍。从前往后数他排第 9，从后往前数他排第 6。这一列一共有多少个白细胞？',
+    hint:'💡 关键词提示："从前往后…从后往前"→ 9+6−1=？别忘了减去重复的自己！',
+    answer:14 },
+  { id:11, type:'choice', category:'人民币计算', title:'买装备', icon:'platelet',
+    question:'血小板队长去小店买止血贴，一盒 8 元，买了 3 盒，付了 30 元。应该找回多少钱？',
+    options:['4 元','5 元','6 元','7 元'], answer:2,
+    hint:'💡 先算总价：8+8+8=24，再 30−24=？' },
+  { id:12, type:'application', category:'100以内加法', title:'大扫除', icon:'wbc',
+    question:'巨噬细胞阿姨今天打扫了 47 个细菌，白细胞帮忙打扫了 36 个。一共打扫了多少个细菌？',
+    hint:'💡 关键词："一共"→ 47+36=？进位别忘啦！',
+    steps:[{label:'算式',answer:'47+36'},{label:'答案',answer:83}] },
+  { id:13, type:'application', category:'100以内减法', title:'巡逻结束', icon:'bacteria',
+    question:'血管里一共有 72 个巡逻白细胞，下了夜班的 45 个白细胞回去休息了。还剩几个白细胞在巡逻？',
+    hint:'💡 关键词："还剩"→ 72−45=？退位别忘啦！',
+    steps:[{label:'算式',answer:'72-45'},{label:'答案',answer:27}] },
+  { id:14, type:'fill', category:'比多少进阶', title:'谁更厉害', icon:'platelet',
+    question:'血小板捉了 58 个病毒，B细胞捉了 34 个病毒。血小板比B细胞多捉了几个？',
+    hint:'💡 关键词："比…多"→ 58−34=？',
+    answer:24 },
+  { id:15, type:'application', category:'两步运算', title:'先买后找', icon:'wbc',
+    question:'红细胞带了 50 元去买氧气面罩，大面罩 35 元，小面罩 8 元。他两个都买了，还剩多少钱？',
+    hint:'💡 先算总价 35+8=43，再 50−43=？',
+    steps:[{label:'先算总价',answer:'35+8=43'},{label:'再算剩多少',answer:7}] },
+  { id:16, type:'choice', category:'钟表时间', title:'准时到达', icon:'bacteria',
+    question:'血小板队长说："3点开会，现在时针在2和3之间，分针指着6。"现在是几点？距离开会还有多久？',
+    options:['2:30 还有30分钟','2:06 还有54分钟','3:06 晚了6分钟','2:30 还有1小时'], answer:0,
+    hint:'💡 分针指着6=30分钟，时针在2和3之间=2点多。2:30→3:00=30分钟' }
+];
+
+// ═══ STATE ═══
+let currentQ=0,answers={},selectedChoice=null;
+function loadState(){try{const s=JSON.parse(localStorage.getItem('cells_math_v2')||'{}');answers=s.answers||{};currentQ=s.currentQ||0}catch(e){}}
+function saveState(){localStorage.setItem('cells_math_v2',JSON.stringify({answers,currentQ}))}
+loadState();
+
+// ═══ SOUND ═══
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function ensureAudio(){if(!audioCtx)audioCtx=new AudioCtx()}
+function beep(freq,dur,type='square',vol=.12){
+  try{ensureAudio();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.value=vol;g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur)}catch(e){}
+}
+function sfxCorrect(){beep(523,.1,'sine',.15);setTimeout(()=>beep(659,.1,'sine',.15),100);setTimeout(()=>beep(784,.15,'sine',.2),200)}
+function sfxWrong(){beep(200,.15,'sawtooth',.1);setTimeout(()=>beep(150,.2,'sawtooth',.1),150)}
+function sfxClick(){beep(440,.05,'sine',.06)}
+function sfxComplete(){beep(523,.1,'sine',.15);setTimeout(()=>beep(659,.1,'sine',.15),120);setTimeout(()=>beep(784,.1,'sine',.15),240);setTimeout(()=>beep(1047,.25,'sine',.2),360)}
+
+// ═══ RENDER ═══
+const icons={'platelet':'🩸','wbc':'⚪','bacteria':'🦠'};
+
+function renderQuestion(){
+  const q=QUESTIONS[currentQ],prev=answers[q.id]||{};
+  let h=`<div class="card active"><div class="card-header"><div class="card-icon icon-${q.icon}"><span style="font-size:36px;line-height:48px;text-align:center;display:block">${icons[q.icon]}</span></div><div><div class="q-cat">🩸 ${q.category}</div><div class="q-title" style="margin:0">${q.title}</div></div></div>`;
+  h+=`<div class="q-body">${q.question}</div><div class="q-hint">${q.hint}</div>`;
+
+  if(q.type==='choice'){
+    h+='<div class="choices">';
+    q.options.forEach((o,i)=>{
+      let c='choice-btn';
+      if(prev.selected!==undefined){
+        if(i===prev.selected)c+=prev.correct?' correct':' wrong';
+        if(prev.correct===false&&i===q.answer)c+=' correct';
+      }
+      h+=`<button class="${c}" data-idx="${i}" ${prev.correct!==undefined?'disabled':''}>${o}</button>`;
+    });
+    h+='</div>';
+    if(prev.correct===undefined)h+='<button class="check-btn" onclick="checkChoice()">✅ 确认答案</button>';
+  }else if(q.type==='fill'){
+    let c='q-input';
+    if(prev.correct===true)c+=' correct';
+    if(prev.correct===false)c+=' wrong';
+    h+=`<input type="number" class="${c}" id="fillInput" value="${prev.userAnswer||''}" placeholder="输入你的答案..." ${prev.correct!==undefined?'disabled':''} inputmode="numeric">`;
+    if(prev.correct===undefined)h+='<button class="check-btn" onclick="checkFill()">✅ 确认答案</button>';
+  }else if(q.type==='application'){
+    h+='<div class="step-inputs">';
+    q.steps.forEach((s,i)=>{
+      let v=(prev.steps&&prev.steps[i])||'';
+      h+=`<div class="step-row"><span class="step-label">${s.label}：</span><input type="${i===0?'text':'number'}" id="step${i}" value="${v}" placeholder="${i===0?'例如：28+14':'输入数字'}" ${prev.correct!==undefined?'disabled':''} inputmode="numeric"></div>`;
+    });
+    h+='</div>';
+    if(prev.correct===undefined)h+='<button class="check-btn" onclick="checkApplication()">✅ 确认答案</button>';
+  }
+
+  // Always show result + method after answering
+  if(prev.correct!==undefined){
+    let cls=prev.correct?'good':'bad',icon=prev.correct?'✅ 太棒了！你做对了！':'❌ 再想想哦～';
+    h+=`<div class="feedback ${cls} show">${icon}</div>`;
+  }
+  // Show method comic after answering
+  if(prev.correct!==undefined && METHOD_IMG[q.id]){
+    h+=`<div class="method-box show" style="padding:4px;background:transparent;border:none"><div class="method-title" style="text-align:center;margin-bottom:8px;color:#89CFF0">📖 血小板队长的方法</div><img src="${METHOD_IMG[q.id]}" style="width:100%;border-radius:12px;border:2px solid rgba(137,207,240,.3)" alt="解题方法"></div>`;
+  }
+
+  h+='</div>';
+  document.getElementById('main').innerHTML=h;
+  updateProgress();updateNav();initSprites();
+}
+
+function updateProgress(){
+  const done=Object.values(answers).filter(a=>a.correct!==undefined).length;
+  document.getElementById('progressFill').style.width=Math.round(done/QUESTIONS.length*100)+'%';
+  document.getElementById('progressText').textContent=`第 ${currentQ+1}/${QUESTIONS.length} 题 · 已完成 ${done} 题`;
+}
+
+function updateNav(){
+  const prev=answers[QUESTIONS[currentQ].id]||{};
+  const done=Object.values(answers).filter(a=>a.correct!==undefined).length;
+  const allDone=done===QUESTIONS.length;
+  document.getElementById('btnPrev').disabled=currentQ===0;
+  if(allDone){
+    document.getElementById('btnNext').style.display='none';
+    document.getElementById('btnReview').style.display='block';
+  }else{
+    document.getElementById('btnNext').style.display='block';
+    document.getElementById('btnReview').style.display=Object.values(answers).some(a=>a.correct===false)?'block':'none';
+    document.getElementById('btnNext').disabled=prev.correct===undefined;
+  }
+}
+
+// ═══ CHECK ═══
+function checkChoice(){
+  const q=QUESTIONS[currentQ];
+  if(selectedChoice===null)return;
+  const correct=selectedChoice===q.answer;
+  answers[q.id]={selected:selectedChoice,correct,type:'choice'};
+  saveState();renderQuestion();
+  if(correct){sfxCorrect();celebrate();}else{sfxWrong();shakeHero();}
+}
+
+function checkFill(){
+  const q=QUESTIONS[currentQ];
+  const val=parseInt(document.getElementById('fillInput').value);
+  if(isNaN(val))return;
+  const correct=val===q.answer;
+  answers[q.id]={userAnswer:val,correct,type:'fill'};
+  saveState();renderQuestion();
+  if(correct){sfxCorrect();celebrate();}else{sfxWrong();shakeHero();}
+}
+
+function checkApplication(){
+  const q=QUESTIONS[currentQ],steps=[];
+  let allCorrect=true;
+  q.steps.forEach((s,i)=>{
+    let v=document.getElementById('step'+i).value.trim();
+    if(i===1)v=parseInt(v);
+    steps.push(v);
+    if(String(v)!==String(s.answer))allCorrect=false;
+  });
+  answers[q.id]={steps,correct:allCorrect,type:'application'};
+  saveState();renderQuestion();
+  if(allCorrect){sfxCorrect();celebrate();}else{sfxWrong();shakeHero();}
+}
+
+function nextQuestion(){
+  if(currentQ<QUESTIONS.length-1){currentQ++;selectedChoice=null;saveState();sfxClick();renderQuestion()}
+  else showComplete();
+}
+
+function prevQuestion(){
+  if(currentQ>0){currentQ--;selectedChoice=null;saveState();sfxClick();renderQuestion()}
+}
+
+document.addEventListener('click',function(e){
+  if(e.target.classList.contains('choice-btn')&&!e.target.disabled){
+    document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('selected'));
+    e.target.classList.add('selected');
+    selectedChoice=parseInt(e.target.dataset.idx);
+    sfxClick();
+  }
+});
+
+function showComplete(){
+  sfxComplete();
+  document.getElementById('main').style.display='none';
+  document.getElementById('complete-screen').classList.add('show');
+  document.getElementById('nav').style.display='none';
+  document.querySelector('.progress-wrap').style.display='none';
+  triggerBigCelebrate();
+  const allCorrect=Object.values(answers).every(a=>a.correct===true);
+  document.getElementById('btnRebattle').style.display=allCorrect?'block':'none';
+}
+
+function goToQuiz(){
+  document.getElementById('main').style.display='';
+  document.getElementById('complete-screen').classList.remove('show');
+  document.getElementById('review-screen').classList.remove('show');
+  document.getElementById('report-screen').classList.remove('show');
+  document.getElementById('nav').style.display='flex';
+  document.querySelector('.progress-wrap').style.display='';
+  renderQuestion();
+}
+function redoWrong(){
+  const wrongIds=QUESTIONS.filter(q=>answers[q.id]&&answers[q.id].correct===false).map(q=>q.id);
+  if(wrongIds.length===0){goToQuiz();return}
+  wrongIds.forEach(id=>delete answers[id]);
+  currentQ=QUESTIONS.findIndex(q=>q.id===wrongIds[0]);
+  selectedChoice=null;
+  saveState();
+  goToQuiz();
+}
+
+function showReview(){
+  const wrong=QUESTIONS.filter(q=>answers[q.id]&&answers[q.id].correct===false);
+  document.getElementById('main').style.display='none';
+  document.getElementById('complete-screen').classList.remove('show');
+  document.getElementById('report-screen').classList.remove('show');
+  document.getElementById('review-screen').classList.add('show');
+  document.getElementById('nav').style.display='none';
+  const list=document.getElementById('reviewList');
+  if(wrong.length===0){
+    list.innerHTML='<div class="empty-state"><div class="emoji">🌟</div>没有错题！全部做对了！</div>';
+  }else{
+    list.innerHTML=wrong.map(q=>{
+      const a=answers[q.id];let ua='';
+      if(a.type==='choice')ua=q.options[a.selected];
+      else if(a.type==='fill')ua=a.userAnswer;
+      else if(a.type==='application')ua=a.steps.join(' → ');
+      let correctAns='';
+      if(q.type==='choice')correctAns=q.options[q.answer];
+      else if(q.type==='fill')correctAns=q.answer;
+      else if(q.type==='application')correctAns=q.steps.map(s=>s.answer).join(' → ');
+      return `<div class="review-item"><div class="rw-q">${q.category}：${q.question}</div><div class="rw-a">❌ 你的答案：${ua}</div><div class="rw-correct">✅ 正确答案：${correctAns}</div></div>`;
+    }).join('');
+  }
+}
+
+function showReport(){
+  const total=QUESTIONS.length;
+  const correct=Object.values(answers).filter(a=>a.correct===true).length;
+  const wrong=Object.values(answers).filter(a=>a.correct===false).length;
+  const rate=Math.round(correct/total*100);
+  document.getElementById('main').style.display='none';
+  document.getElementById('complete-screen').classList.remove('show');
+  document.getElementById('review-screen').classList.remove('show');
+  document.getElementById('report-screen').classList.add('show');
+  document.getElementById('nav').style.display='none';
+  document.getElementById('reportContent').innerHTML=`
+    <div class="report-grid">
+      <div class="report-card"><div class="num">${total}</div><div class="label">总题数</div></div>
+      <div class="report-card"><div class="num" style="color:#4CAF50">${correct}</div><div class="label">✅ 正确</div></div>
+      <div class="report-card"><div class="num" style="color:#E85545">${wrong}</div><div class="label">❌ 错误</div></div>
+      <div class="report-card"><div class="num">${rate}%</div><div class="label">正确率</div></div>
+    </div>
+    <div class="report-detail"><div class="rd-title">📋 各题详情</div>
+      <table>${QUESTIONS.map(q=>{
+        const a=answers[q.id];
+        return `<tr><td>${q.title}</td><td>${!a?'⏳ 未作答':a.correct?'✅ 正确':'❌ 错误'}</td></tr>`;
+      }).join('')}</table>
+    </div>
+    <div class="report-detail"><div class="rd-title">💡 建议</div>
+      <p style="color:#ddcccc;font-size:14px;line-height:1.6">
+        ${wrong===0?'孩子全部答对了！可以考虑增加难度或尝试其他题型。':wrong<=2?'整体表现不错，错题集中在少数类型，建议针对错题类型加强练习。':'有较多错题，建议先回顾错题的解题方法，理解思路后再重做。'}
+      </p>
+    </div>`;
+}
+
+function resetQuiz(){
+  answers={};currentQ=0;selectedChoice=null;localStorage.removeItem('cells_math_v2');
+  document.getElementById('complete-screen').classList.remove('show');
+  document.getElementById('main').style.display='';
+  document.getElementById('nav').style.display='flex';
+  document.querySelector('.progress-wrap').style.display='';
+  renderQuestion();
+}
+function rebattle(){
+  const qids=QUESTIONS.map(q=>q.id);
+  qids.forEach(id=>delete answers[id]);
+  currentQ=0;selectedChoice=null;
+  saveState();
+  document.getElementById('complete-screen').classList.remove('show');
+  document.getElementById('main').style.display='';
+  document.getElementById('nav').style.display='flex';
+  document.querySelector('.progress-wrap').style.display='';
+  renderQuestion();
+}
+
+// ═══ CANVAS ANIMATION (pure Canvas, no image dependencies) ═══
+const canvas=document.getElementById('heroCanvas'),ctx=canvas.getContext('2d');
+let animFrame;
+
+let platelets=[],wbc={},bacteria=[],floaters=[];
+
+function initSprites(){
+  const w=canvas.clientWidth,h=240;
+  wbc={x:w*0.15,y:h*0.5,radius:30,speed:1.5,facingRight:true};
+  bacteria=[{x:w*0.85,y:h*0.4,radius:18,speed:1.2},{x:w*0.75,y:h*0.6,radius:15,speed:.9}];
+  platelets=[];
+  for(let i=0;i<4;i++)platelets.push({x:w*0.15+i*w*0.2,y:h*0.2+Math.random()*h*.5,radius:18,speed:.25+Math.random()*.35,direction:Math.random()>.5?1:-1});
+  floaters=[];
+  for(let i=0;i<15;i++)floaters.push({x:Math.random()*w,y:Math.random()*h,radius:3+Math.random()*4,speed:.3+Math.random()*.7,color:`rgba(232,85,69,${.15+Math.random()*.35})`});
+}
+
+function drawRBC(x,y,r,color){
+  ctx.beginPath();ctx.ellipse(x,y,r*1.2,r*.7,0,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+  ctx.beginPath();ctx.ellipse(x,y,r*.5,r*.3,0,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,.12)';ctx.fill();
+}
+
+function drawPlatelet(x,y,r){
+  ctx.save();ctx.translate(x,y);
+  ctx.fillStyle='#89CFF0';ctx.beginPath();ctx.arc(0,-r*.15,r,r*.3,Math.PI,0);ctx.fill();
+  ctx.fillStyle='#a0d8f0';ctx.beginPath();ctx.ellipse(0,r*.2,r*.7,r*.45,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#d0e8f5';ctx.beginPath();ctx.arc(0,0,r*.35,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r*.35,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+}
+function drawWBC(x,y,r){
+  ctx.save();ctx.translate(x,y);
+  ctx.fillStyle='#f5f5f5';ctx.beginPath();
+  for(let i=0;i<12;i++){const a=i/12*Math.PI*2,rr=r*(.75+.25*Math.sin(i*1.7+Date.now()/800));ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr)}ctx.closePath();ctx.fill();
+  ctx.fillStyle='#e0e0e0';ctx.beginPath();ctx.arc(0,0,r*.4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.arc(r*.15,-r*.18,r*.12,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.arc(-r*.15,-r*.18,r*.12,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+function drawBacteria(x,y,r){
+  ctx.save();ctx.translate(x,y);
+  ctx.fillStyle='#9400D3';ctx.beginPath();ctx.ellipse(0,0,r*1.2,r*.6,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#7b00b3';ctx.beginPath();ctx.ellipse(0,0,r*.8,r*.35,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(-r*.2,-r*.1,r*.15,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(r*.25,-r*.05,r*.1,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function animate(){
+  const w=canvas.clientWidth,h=240;
+  canvas.width=w;canvas.height=h;
+  const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#2d1010');bg.addColorStop(1,'#1a0a0a');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+
+  // Blood vessel walls
+  ctx.strokeStyle='rgba(232,85,69,.08)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(0,h*.15);for(let i=0;i<=w;i+=40)ctx.lineTo(i,h*.15+Math.sin(i/50+Date.now()/3000)*8);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,h*.85);for(let i=0;i<=w;i+=40)ctx.lineTo(i,h*.85+Math.sin(i/50+Date.now()/3000)*6);ctx.stroke();
+
+  floaters.forEach(f=>{f.y-=f.speed;if(f.y<-10){f.y=h+10;f.x=Math.random()*w}drawRBC(f.x,f.y,f.radius,f.color)});
+  platelets.forEach(p=>{p.x+=p.speed*p.direction;if(p.x>w+30)p.x=-30;if(p.x<-30)p.x=w+30;drawPlatelet(p.x,p.y,p.radius)});
+  bacteria.forEach((b,i)=>{b.x-=b.speed+Math.sin(Date.now()/500+i)*.3;if(b.x<-30){b.x=w+30;b.y=h*.3+Math.random()*h*.4}drawBacteria(b.x,b.y,b.radius)});
+
+  // WBC chases nearest bacteria
+  const target=bacteria.reduce((c,b)=>{const d=Math.hypot(wbc.x-b.x,wbc.y-b.y);return(!c||d<c.d)?{bacteria:b,d}:c},null);
+  if(target){const dx=target.bacteria.x-wbc.x,dy=target.bacteria.y-wbc.y,dist=Math.hypot(dx,dy);if(dist>1){wbc.x+=dx/dist*wbc.speed;wbc.y+=dy/dist*wbc.speed}wbc.facingRight=dx>0}
+
+  ctx.save();
+  if(!wbc.facingRight){ctx.translate(wbc.x,0);ctx.scale(-1,1);drawWBC(0,wbc.y,wbc.radius)}
+  else drawWBC(wbc.x,wbc.y,wbc.radius);
+  ctx.restore();
+
+  animFrame=requestAnimationFrame(animate);
+}
+
+function shakeHero(){const h=document.getElementById('hero');h.style.animation='none';h.offsetHeight;h.style.animation='shake .4s ease';setTimeout(()=>h.style.animation='',400)}
+function celebrate(){const h=document.getElementById('hero');h.style.background='linear-gradient(180deg,#1a3a1a,#1a0a0a)';setTimeout(()=>h.style.background='',600)}
+function triggerBigCelebrate(){document.getElementById('hero').style.background='linear-gradient(180deg,#2a3a1a,#1a0a0a)'}
+
+function handleResize(){canvas.width=canvas.clientWidth;canvas.height=canvas.clientHeight}
+window.addEventListener('resize',handleResize);
+handleResize();initSprites();animate();renderQuestion();
+
+const done=Object.values(answers).filter(a=>a.correct!==undefined).length;
+if(done===QUESTIONS.length&&done>0)showComplete();
+</script>
+</body>
+</html>
