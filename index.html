@@ -480,20 +480,32 @@ function rebattle(){
   renderQuestion();
 }
 
-// ═══ CANVAS ANIMATION (pure Canvas, no image dependencies) ═══
+// ═══ CANVAS ANIMATION (using real character images) ═══
 const canvas=document.getElementById('heroCanvas'),ctx=canvas.getContext('2d');
 let animFrame;
 
 let platelets=[],wbc={},bacteria=[],floaters=[];
+// Real character images
+let imgPlatelet,imgWBC,imgBacteria,imagesLoaded=0,imagesTotal=3;
+
+function loadImages(){
+  const assets=['血小板.png','白血球.png','细菌.png'];
+  const imgs=[imgPlatelet=new Image(),imgWBC=new Image(),imgBacteria=new Image()];
+  assets.forEach((src,i)=>{
+    imgs[i].onload=()=>{imagesLoaded++;if(imagesLoaded===imagesTotal)console.log('All sprite images loaded')};
+    imgs[i].src=src;
+  });
+}
 
 function initSprites(){
   const w=canvas.clientWidth,h=240;
-  wbc={x:w*0.15,y:h*0.5,radius:30,speed:1.5,facingRight:true};
-  bacteria=[{x:w*0.85,y:h*0.4,radius:18,speed:1.2},{x:w*0.75,y:h*0.6,radius:15,speed:.9}];
+  wbc={x:w*0.15,y:h*0.5,size:40,speed:1.5,facingRight:true};
+  bacteria=[{x:w*0.85,y:h*0.4,size:28,speed:1.2},{x:w*0.75,y:h*0.6,size:24,speed:.9}];
   platelets=[];
-  for(let i=0;i<4;i++)platelets.push({x:w*0.15+i*w*0.2,y:h*0.2+Math.random()*h*.5,radius:18,speed:.25+Math.random()*.35,direction:Math.random()>.5?1:-1});
+  for(let i=0;i<4;i++)platelets.push({x:w*0.15+i*w*0.2,y:h*0.2+Math.random()*h*.5,size:28,speed:.25+Math.random()*.35,direction:Math.random()>.5?1:-1});
   floaters=[];
   for(let i=0;i<15;i++)floaters.push({x:Math.random()*w,y:Math.random()*h,radius:3+Math.random()*4,speed:.3+Math.random()*.7,color:`rgba(232,85,69,${.15+Math.random()*.35})`});
+  if(!imgPlatelet)loadImages();
 }
 
 function drawRBC(x,y,r,color){
@@ -501,31 +513,18 @@ function drawRBC(x,y,r,color){
   ctx.beginPath();ctx.ellipse(x,y,r*.5,r*.3,0,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,.12)';ctx.fill();
 }
 
-function drawPlatelet(x,y,r){
-  ctx.save();ctx.translate(x,y);
-  ctx.fillStyle='#89CFF0';ctx.beginPath();ctx.arc(0,-r*.15,r,r*.3,Math.PI,0);ctx.fill();
-  ctx.fillStyle='#a0d8f0';ctx.beginPath();ctx.ellipse(0,r*.2,r*.7,r*.45,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#d0e8f5';ctx.beginPath();ctx.arc(0,0,r*.35,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,r*.35,0,Math.PI*2);ctx.stroke();
+function drawImageSprite(img,x,y,size,flip){
+  if(!img||!img.complete)return;
+  ctx.save();
+  ctx.translate(x,y);
+  if(flip)ctx.scale(-1,1);
+  ctx.drawImage(img,-size/2,-size/2,size,size);
   ctx.restore();
 }
-function drawWBC(x,y,r){
-  ctx.save();ctx.translate(x,y);
-  ctx.fillStyle='#f5f5f5';ctx.beginPath();
-  for(let i=0;i<12;i++){const a=i/12*Math.PI*2,rr=r*(.75+.25*Math.sin(i*1.7+Date.now()/800));ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr)}ctx.closePath();ctx.fill();
-  ctx.fillStyle='#e0e0e0';ctx.beginPath();ctx.arc(0,0,r*.4,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.arc(r*.15,-r*.18,r*.12,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.arc(-r*.15,-r*.18,r*.12,0,Math.PI*2);ctx.fill();
-  ctx.restore();
-}
-function drawBacteria(x,y,r){
-  ctx.save();ctx.translate(x,y);
-  ctx.fillStyle='#9400D3';ctx.beginPath();ctx.ellipse(0,0,r*1.2,r*.6,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#7b00b3';ctx.beginPath();ctx.ellipse(0,0,r*.8,r*.35,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(-r*.2,-r*.1,r*.15,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,.3)';ctx.beginPath();ctx.arc(r*.25,-r*.05,r*.1,0,Math.PI*2);ctx.fill();
-  ctx.restore();
-}
+
+function drawPlatelet(x,y,size){drawImageSprite(imgPlatelet,x,y,size,false)}
+function drawWBC(x,y,size,flip){drawImageSprite(imgWBC,x,y,size,flip)}
+function drawBacteria(x,y,size){drawImageSprite(imgBacteria,x,y,size,false)}
 
 function animate(){
   const w=canvas.clientWidth,h=240;
@@ -539,17 +538,14 @@ function animate(){
   ctx.beginPath();ctx.moveTo(0,h*.85);for(let i=0;i<=w;i+=40)ctx.lineTo(i,h*.85+Math.sin(i/50+Date.now()/3000)*6);ctx.stroke();
 
   floaters.forEach(f=>{f.y-=f.speed;if(f.y<-10){f.y=h+10;f.x=Math.random()*w}drawRBC(f.x,f.y,f.radius,f.color)});
-  platelets.forEach(p=>{p.x+=p.speed*p.direction;if(p.x>w+30)p.x=-30;if(p.x<-30)p.x=w+30;drawPlatelet(p.x,p.y,p.radius)});
-  bacteria.forEach((b,i)=>{b.x-=b.speed+Math.sin(Date.now()/500+i)*.3;if(b.x<-30){b.x=w+30;b.y=h*.3+Math.random()*h*.4}drawBacteria(b.x,b.y,b.radius)});
+  platelets.forEach(p=>{p.x+=p.speed*p.direction;if(p.x>w+30)p.x=-30;if(p.x<-30)p.x=w+30;drawPlatelet(p.x,p.y,p.size)});
+  bacteria.forEach((b,i)=>{b.x-=b.speed+Math.sin(Date.now()/500+i)*.3;if(b.x<-30){b.x=w+30;b.y=h*.3+Math.random()*h*.4}drawBacteria(b.x,b.y,b.size)});
 
   // WBC chases nearest bacteria
   const target=bacteria.reduce((c,b)=>{const d=Math.hypot(wbc.x-b.x,wbc.y-b.y);return(!c||d<c.d)?{bacteria:b,d}:c},null);
   if(target){const dx=target.bacteria.x-wbc.x,dy=target.bacteria.y-wbc.y,dist=Math.hypot(dx,dy);if(dist>1){wbc.x+=dx/dist*wbc.speed;wbc.y+=dy/dist*wbc.speed}wbc.facingRight=dx>0}
 
-  ctx.save();
-  if(!wbc.facingRight){ctx.translate(wbc.x,0);ctx.scale(-1,1);drawWBC(0,wbc.y,wbc.radius)}
-  else drawWBC(wbc.x,wbc.y,wbc.radius);
-  ctx.restore();
+  drawWBC(wbc.x,wbc.y,wbc.size,!wbc.facingRight);
 
   animFrame=requestAnimationFrame(animate);
 }
