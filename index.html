@@ -497,7 +497,7 @@ let platelets=[],wbc={},bacteria=[],floaters=[];
 let imgPlatelet,imgWBC,imgBacteria,imagesLoaded=0,imagesTotal=3;
 
 function loadImages(){
-  const assets=['血小板.png','白血球.png','细菌.png'];
+  const assets=['platelet.png','wbc.png','bacteria.png'];
   const imgs=[imgPlatelet=new Image(),imgWBC=new Image(),imgBacteria=new Image()];
   assets.forEach((src,i)=>{
     imgs[i].onload=()=>{imagesLoaded++;if(imagesLoaded===imagesTotal)console.log('All sprite images loaded')};
