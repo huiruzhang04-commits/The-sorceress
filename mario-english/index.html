@@ -151,8 +151,8 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden
 .level-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:36px;font-weight:bold;color:#fff;text-shadow:3px 3px 0 #E86A17;z-index:250;animation:hintPop 2s forwards;text-align:center}
 @keyframes hintPop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}20%{transform:translate(-50%,-50%) scale(1.1);opacity:1}70%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
 
-/* 安全区标记 */
-.safe-zone{position:absolute;bottom:40%;width:80px;height:10px;background:rgba(0,255,0,.3);border-radius:5px;z-index:5}
+/* 物理调试信息 */
+#physics-debug{position:absolute;top:60px;left:10px;color:#fff;font-size:12px;z-index:200;background:rgba(0,0,0,.5);padding:5px;border-radius:5px;display:none}
 </style>
 </head>
 <body>
@@ -165,6 +165,9 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden
   <div>❤️ <span id="lives">3</span></div>
   <div>⭐ <span id="score">0</span></div>
 </div>
+
+<!-- 物理调试 -->
+<div id="physics-debug">速度: <span id="debug-speed">0</span> | 高度: <span id="debug-height">0</span></div>
 
 <!-- 云朵 -->
 <div class="cloud" style="top:10%;animation-duration:20s">☁️</div>
@@ -227,7 +230,8 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden
   <div class="story">
     <p>👸 公主被库巴抓走了！</p>
     <p>🏃 马里欧会自动向前跑</p>
-    <p>⬆️ 按上键或点击跳跃</p>
+    <p>⬆️ 按上键或点击跳跃（长按跳更高）</p>
+    <p>⬅️➡️ 左右键移动选择砖块</p>
     <p>🧱 遇到单词砖要答对才能过</p>
     <p>🍄 顶道具砖获得超能力！</p>
   </div>
@@ -259,7 +263,9 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden
 
 <!-- 控制按钮 -->
 <div class="controls">
+  <div class="ctrl-btn" onclick="moveLeft()">⬅️</div>
   <div class="ctrl-btn" onclick="jump()">⬆️</div>
+  <div class="ctrl-btn" onclick="moveRight()">➡️</div>
   <div class="ctrl-btn fire-btn hide" id="fire-btn" onclick="shootFire()">🔥</div>
 </div>
 
@@ -280,6 +286,7 @@ function sfxCorrect(){playSound(523,0.1,'sine',0.12);setTimeout(()=>playSound(65
 function sfxWrong(){playSound(200,0.2,'sawtooth',0.1);setTimeout(()=>playSound(150,0.25,'sawtooth',0.1),150)}
 function sfxPowerUp(){[300,400,500,600,800].forEach((f,i)=>setTimeout(()=>playSound(f,0.15,'sine',0.12),i*100))}
 function sfxFire(){playSound(800,0.1,'sawtooth',0.1);setTimeout(()=>playSound(600,0.15,'sawtooth',0.08),50)}
+function sfxBrake(){playSound(200,0.1,'sawtooth',0.08);playSound(150,0.15,'sawtooth',0.06)}
 
 // ========== 单词库（按难度分级）==========
 const WORDS_EASY = [
@@ -298,10 +305,16 @@ const WORDS_HARD = [
   {en:'beautiful',cn:'美丽的',pron:'/ˈbjuː.tɪ.fəl/'},{en:'butterfly',cn:'蝴蝶',pron:'/ˈbʌt.ə.flaɪ/'}
 ];
 
+// ========== 物理系统 ==========
+const GRAVITY = 0.6;
+const JUMP_FORCE = -12;
+const MOVE_SPEED = 3;
+const FRICTION = 0.85;
+const ACCELERATION = 0.5;
+
 // ========== 游戏状态 ==========
 let coins=0,score=0,lives=3;
 let isBig=false,hasFire=false,isStar=false;
-let gameSpeed=2,marioY=0,isJumping=false;
 let gameActive=false,gamePaused=false;
 let gameLoop=null,spawnTimer=null;
 let enemies=[],bricks=[],items=[];
@@ -309,11 +322,17 @@ let distance=0,wordBricksHit=0;
 let currentLevel=1;
 let combo=0,maxCombo=0;
 
+// 物理状态
+let marioX=100,marioY=0;
+let velocityX=0,velocityY=0;
+let isJumping=false,isOnGround=true;
+let jumpTimer=0,maxJumpTime=15;
+let keys={left:false,right:false,up:false};
+
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
-// ========== 关卡系统（基于CCST方法论）==========
+// ========== 关卡系统 ==========
 function getLevelConfig(level){
-  // 关卡配置：难度递增，引入新元素
   const configs=[
     {speed:2,enemyRate:0.3,brickRate:0.4,words:WORDS_EASY,name:'1-1 新手村',hint:'简单单词，熟悉操作'},
     {speed:2.5,enemyRate:0.5,brickRate:0.5,words:WORDS_EASY.concat(WORDS_MEDIUM.slice(0,3)),name:'1-2 绿草地',hint:'加入中等难度单词'},
@@ -335,12 +354,19 @@ function showLevelHint(config){
 // ========== 游戏控制 ==========
 function startGame(){
   coins=0;score=0;lives=3;isBig=false;hasFire=false;isStar=false;
-  gameSpeed=2;distance=0;wordBricksHit=0;currentLevel=1;combo=0;maxCombo=0;
+  distance=0;wordBricksHit=0;currentLevel=1;combo=0;maxCombo=0;
   enemies=[];bricks=[];items=[];
   gameActive=true;gamePaused=false;
   
+  // 重置物理状态
+  marioX=100;marioY=0;
+  velocityX=0;velocityY=0;
+  isJumping=false;isOnGround=true;
+  jumpTimer=0;
+  
   updateHUD();
   updateMario();
+  updateMarioPosition();
   
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hide'));
   document.getElementById('word-popup').classList.remove('show');
@@ -351,48 +377,50 @@ function startGame(){
   document.getElementById('enemies').innerHTML='';
   document.getElementById('items').innerHTML='';
   
-  // 显示第一关提示
   showLevelHint(getLevelConfig(1));
   
-  // 开始游戏循环
-  if(gameLoop)clearInterval(gameLoop);
-  gameLoop=setInterval(gameUpdate,20);
+  if(gameLoop)cancelAnimationFrame(gameLoop);
+  gameLoop=requestAnimationFrame(gameUpdate);
   
-  // 生成器
   if(spawnTimer)clearInterval(spawnTimer);
   spawnTimer=setInterval(spawnThings,2000);
 }
 
 function gameUpdate(){
-  if(!gameActive||gamePaused)return;
+  if(!gameActive||gamePaused){
+    gameLoop=requestAnimationFrame(gameUpdate);
+    return;
+  }
   
-  distance+=gameSpeed;
+  // 物理更新
+  updatePhysics();
   
-  // 检查是否该进入下一关（每答对3个单词升级）
+  // 游戏逻辑
+  distance+=getLevelConfig(currentLevel).speed;
+  
+  // 检查升级
   if(wordBricksHit>=currentLevel*3&&currentLevel<5){
     currentLevel++;
     const config=getLevelConfig(currentLevel);
-    gameSpeed=config.speed;
     showLevelHint(config);
   }
   
   // 移动敌人
   enemies.forEach((e,i)=>{
-    e.x-=gameSpeed;
+    e.x-=getLevelConfig(currentLevel).speed;
     e.el.style.left=e.x+'px';
     if(e.x<-50){e.el.remove();enemies.splice(i,1)}
     
-    // 碰撞检测
     if(!e.dead&&checkCollision(document.getElementById('mario'),e.el)){
       if(isStar){killEnemy(e,i)}
-      else if(isJumping&&marioY>0){killEnemy(e,i);score+=100;sfxHit()}
+      else if(velocityY>0&&!isOnGround){killEnemy(e,i);score+=100;sfxHit();velocityY=-5}
       else{hurtMario()}
     }
   });
   
   // 移动砖块
   bricks.forEach((b,i)=>{
-    b.x-=gameSpeed;
+    b.x-=getLevelConfig(currentLevel).speed;
     b.el.style.left=b.x+'px';
     if(b.x<-100){b.el.remove();bricks.splice(i,1)}
     
@@ -403,7 +431,7 @@ function gameUpdate(){
   
   // 移动道具
   items.forEach((item,i)=>{
-    item.x-=gameSpeed;
+    item.x-=getLevelConfig(currentLevel).speed;
     item.el.style.left=item.x+'px';
     if(item.x<-50){item.el.remove();items.splice(i,1)}
     
@@ -414,10 +442,89 @@ function gameUpdate(){
     }
   });
   
-  // 检查胜利（第5关答对3个单词）
+  // 检查胜利
   if(currentLevel===5&&wordBricksHit>=12){
     winGame();
+    return;
   }
+  
+  // 更新调试信息
+  document.getElementById('debug-speed').textContent=Math.abs(velocityX).toFixed(1);
+  document.getElementById('debug-height').textContent=Math.abs(marioY).toFixed(0);
+  
+  gameLoop=requestAnimationFrame(gameUpdate);
+}
+
+function updatePhysics(){
+  // 水平移动（加速度和摩擦力）
+  if(keys.left){
+    velocityX-=ACCELERATION;
+    if(velocityX<-MOVE_SPEED)velocityX=-MOVE_SPEED;
+  }else if(keys.right){
+    velocityX+=ACCELERATION;
+    if(velocityX>MOVE_SPEED)velocityX=MOVE_SPEED;
+  }else{
+    velocityX*=FRICTION;
+    if(Math.abs(velocityX)<0.1)velocityX=0;
+  }
+  
+  // 应用水平速度
+  marioX+=velocityX;
+  
+  // 限制在屏幕内
+  const gameW=document.getElementById('game').offsetWidth;
+  if(marioX<20)marioX=20;
+  if(marioX>gameW-60)marioX=gameW-60;
+  
+  // 跳跃（长按跳更高）
+  if(keys.up&&isOnGround&&!isJumping){
+    isJumping=true;
+    isOnGround=false;
+    velocityY=JUMP_FORCE;
+    jumpTimer=0;
+    sfxJump();
+  }
+  
+  // 持续按键增加跳跃高度
+  if(keys.up&&isJumping&&jumpTimer<maxJumpTime){
+    velocityY+=JUMP_FORCE*0.1;
+    jumpTimer++;
+  }
+  
+  // 重力
+  if(!isOnGround){
+    velocityY+=GRAVITY;
+    marioY+=velocityY;
+    
+    // 落地检测
+    if(marioY>=0){
+      marioY=0;
+      velocityY=0;
+      isOnGround=true;
+      isJumping=false;
+      jumpTimer=0;
+    }
+  }
+  
+  // 更新马里欧位置
+  updateMarioPosition();
+}
+
+function updateMarioPosition(){
+  const mario=document.getElementById('mario');
+  mario.style.left=marioX+'px';
+  mario.style.bottom=(40+marioY)+'%';
+  
+  // 跳跃动画
+  if(!isOnGround){
+    mario.classList.add('jump');
+  }else{
+    mario.classList.remove('jump');
+  }
+  
+  // 朝向
+  if(velocityX>0.5)mario.style.transform='scaleX(1)';
+  else if(velocityX<-0.5)mario.style.transform='scaleX(-1)';
 }
 
 function spawnThings(){
@@ -426,12 +533,10 @@ function spawnThings(){
   const config=getLevelConfig(currentLevel);
   const gameW=document.getElementById('game').offsetWidth;
   
-  // 随机生成怪物（根据关卡难度）
   if(Math.random()<config.enemyRate){
     spawnEnemy(gameW+50);
   }
   
-  // 随机生成砖块
   if(Math.random()<config.brickRate){
     const isWordBrick=Math.random()<0.6;
     if(isWordBrick){
@@ -528,7 +633,6 @@ function showWordPopup(word){
   document.getElementById('popup-word').textContent=word.en;
   document.getElementById('popup-feedback').textContent='';
   
-  // 根据关卡难度决定选项数量
   const optionCount=currentLevel>=4?4:currentLevel>=2?3:2;
   const others=WORDS_EASY.concat(WORDS_MEDIUM).concat(WORDS_HARD).filter(w=>w.en!==word.en);
   const wrongs=shuffle(others).slice(0,optionCount-1).map(w=>w.cn);
@@ -537,7 +641,6 @@ function showWordPopup(word){
   const choicesDiv=document.getElementById('popup-choices');
   choicesDiv.innerHTML='';
   
-  // 根据选项数量调整布局
   if(optionCount<=2){
     choicesDiv.style.gridTemplateColumns='1fr 1fr';
   }else if(optionCount===3){
@@ -575,9 +678,7 @@ function checkAnswer(btn,ans,correct){
     score+=points;
     wordBricksHit++;
     
-    if(combo>=3){
-      showStatus('🔥 '+combo+'连击！');
-    }
+    if(combo>=3)showStatus('🔥 '+combo+'连击！');
   }else{
     btn.classList.add('wrong');
     document.querySelectorAll('.choice').forEach(b=>{if(b.textContent===correct)b.classList.add('right')});
@@ -643,16 +744,6 @@ function shootFire(){
   setTimeout(()=>{fireball.remove();clearInterval(checkFireHit)},1000);
 }
 
-function jump(){
-  if(!gameActive||isJumping||gamePaused)return;
-  isJumping=true;
-  sfxJump();
-  document.getElementById('mario').classList.add('jump');
-  marioY=35;
-  setTimeout(()=>{marioY=0},250);
-  setTimeout(()=>{document.getElementById('mario').classList.remove('jump');isJumping=false},500);
-}
-
 function checkCollision(el1,el2){
   const r1=el1.getBoundingClientRect();
   const r2=el2.getBoundingClientRect();
@@ -681,7 +772,6 @@ function showStatus(msg){
 
 function winGame(){
   gameActive=false;
-  clearInterval(gameLoop);
   clearInterval(spawnTimer);
   sfxCorrect();
   document.getElementById('win-coins').textContent=coins;
@@ -691,21 +781,28 @@ function winGame(){
 
 function loseGame(){
   gameActive=false;
-  clearInterval(gameLoop);
   clearInterval(spawnTimer);
   document.getElementById('fail-score').textContent=score;
   document.getElementById('fail-screen').classList.remove('hide');
 }
 
+// ========== 控制函数 ==========
+function moveLeft(){keys.left=true;keys.right=false;setTimeout(()=>keys.left=false,100)}
+function moveRight(){keys.right=true;keys.left=false;setTimeout(()=>keys.right=false,100)}
+function jump(){keys.up=true;setTimeout(()=>keys.up=false,200)}
+
 // 键盘控制
 document.addEventListener('keydown',e=>{
-  if(e.code==='ArrowUp'||e.code==='Space'||e.code==='KeyW'){
-    e.preventDefault();
-    jump();
-  }else if(e.code==='KeyF'||e.code==='ControlLeft'){
-    e.preventDefault();
-    shootFire();
-  }
+  if(e.code==='ArrowLeft'||e.code==='KeyA'){e.preventDefault();keys.left=true}
+  else if(e.code==='ArrowRight'||e.code==='KeyD'){e.preventDefault();keys.right=true}
+  else if(e.code==='ArrowUp'||e.code==='Space'||e.code==='KeyW'){e.preventDefault();keys.up=true}
+  else if(e.code==='KeyF'){e.preventDefault();shootFire()}
+});
+
+document.addEventListener('keyup',e=>{
+  if(e.code==='ArrowLeft'||e.code==='KeyA')keys.left=false;
+  else if(e.code==='ArrowRight'||e.code==='KeyD')keys.right=false;
+  else if(e.code==='ArrowUp'||e.code==='Space'||e.code==='KeyW')keys.up=false;
 });
 </script>
 </body>
