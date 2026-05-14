@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>图片测试</title>
+<style>
+body { background: #1a0a0a; color: #fff; font-family: sans-serif; padding: 20px; }
+.test-item { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 8px; }
+.test-item img { max-width: 300px; border: 2px solid #666; display: block; margin: 10px 0; }
+.error { color: #ff6666; }
+.success { color: #66ff66; }
+</style>
+</head>
+<body>
+<h1>图片加载测试</h1>
+
+<div class="test-item">
+<h3>角色图测试</h3>
+<p>platelet.png:</p>
+<img src="platelet.png" onerror="this.nextElementSibling.style.display='block'">
+<p class="error" style="display:none">❌ 加载失败</p>
+
+<p>wbc.png:</p>
+<img src="wbc.png" onerror="this.nextElementSibling.style.display='block'">
+<p class="error" style="display:none">❌ 加载失败</p>
+
+<p>bacteria.png:</p>
+<img src="bacteria.png" onerror="this.nextElementSibling.style.display='block'">
+<p class="error" style="display:none">❌ 加载失败</p>
+</div>
+
+<div class="test-item">
+<h3>解题方法图测试 (Q9-Q16)</h3>
+<p>Q9.png:</p>
+<img src="Q9.png" onerror="this.nextElementSibling.style.display='block'">
+<p class="error" style="display:none">❌ 加载失败</p>
+
+<p>Q10.png:</p>
+<img src="Q10.png" onerror="this.nextElementSibling.style.display='block'">
+<p class="error" style="display:none">❌ 加载失败</p>
+
+<p>Q12.png:</p>
+<img src="Q12.png" onerror="this.nextElementSibling.style.display='block'">
+<p class="error" style="display:none">❌ 加载失败</p>
+</div>
+
+<div class="test-item">
+<h3>解题方法图测试 (listenhub)</h3>
+<p>listenhub-20260501-015553-xhuxuk.png (Q1):</p>
+<img src="listenhub-20260501-015553-xhuxuk.png" onerror="this.nextElementSibling.style.display='block'">
+<p class="error" style="display:none">❌ 加载失败</p>
+</div>
+
+</body>
+</html>
