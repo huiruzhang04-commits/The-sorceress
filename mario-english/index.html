@@ -22,31 +22,81 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden
 /* 山 */
 .mountain{position:absolute;bottom:40%;font-size:80px;opacity:.8}
 
-/* 真正的马里欧 (CSS绘制) */
-.mario{position:absolute;bottom:40%;left:100px;width:40px;height:50px;z-index:100;transition:transform .1s}
-.mario .hat{position:absolute;top:0;left:5px;width:30px;height:12px;background:#FF0000;border-radius:10px 10px 0 0}
-.mario .face{position:absolute;top:10px;left:8px;width:24px;height:18px;background:#FFCC99;border-radius:0 0 10px 10px}
-.mario .eye{position:absolute;top:13px;left:12px;width:4px;height:5px;background:#000;border-radius:50%}
-.mario .mustache{position:absolute;top:18px;left:10px;width:16px;height:4px;background:#000;border-radius:0 0 5px 5px}
-.mario .body{position:absolute;top:26px;left:5px;width:30px;height:16px;background:#FF0000;border-radius:5px}
-.mario .button{position:absolute;top:30px;left:14px;width:6px;height:6px;background:#FFD700;border-radius:50%}
-.mario .arm{position:absolute;top:28px;left:0;width:8px;height:12px;background:#FF0000;border-radius:5px}
-.mario .arm.right{left:32px}
-.mario .leg{position:absolute;top:40px;left:8px;width:10px;height:12px;background:#0000FF;border-radius:0 0 5px 5px}
-.mario .leg.right{left:22px}
+/* 真正的马里欧 (精细CSS绘制) */
+.mario{position:absolute;bottom:40%;left:100px;width:44px;height:56px;z-index:100;transition:transform .1s}
+/* 帽子 */
+.mario .hat{position:absolute;top:0;left:2px;width:40px;height:14px;background:#E70012;border-radius:12px 12px 0 0}
+.mario .hat::after{content:'';position:absolute;top:10px;left:-2px;width:44px;height:6px;background:#E70012;border-radius:3px}
+/* 脸 */
+.mario .face{position:absolute;top:14px;left:6px;width:32px;height:20px;background:#FFCC99;border-radius:0 0 14px 14px}
+/* 眼睛 */
+.mario .eye{position:absolute;top:17px;width:5px;height:7px;background:#000;border-radius:50%}
+.mario .eye.left{left:12px}
+.mario .eye.right{left:24px}
+/* 鼻子 */
+.mario .nose{position:absolute;top:21px;left:17px;width:10px;height:8px;background:#FFCC99;border-radius:50%;border:1px solid #E8B89D;z-index:5}
+/* 胡子 */
+.mario .mustache{position:absolute;top:26px;left:8px;width:28px;height:8px;background:#000;border-radius:0 0 10px 10px}
+.mario .mustache::before{content:'';position:absolute;top:-2px;left:-3px;width:10px;height:6px;background:#000;border-radius:50%}
+.mario .mustache::after{content:'';position:absolute;top:-2px;right:-3px;width:10px;height:6px;background:#000;border-radius:50%}
+/* 身体 */
+.mario .body{position:absolute;top:32px;left:4px;width:36px;height:18px;background:#E70012;border-radius:4px}
+/* 背带 */
+.mario .overall{position:absolute;top:34px;left:6px;width:32px;height:14px;background:#0045AD;border-radius:2px}
+.mario .strap{position:absolute;top:32px;width:4px;height:10px;background:#0045AD}
+.mario .strap.left{left:10px}
+.mario .strap.right{left:30px}
+/* 扣子 */
+.mario .button{position:absolute;top:38px;width:5px;height:5px;background:#FFD700;border-radius:50%}
+.mario .button.left{left:12px}
+.mario .button.right{left:27px}
+/* 手臂 */
+.mario .arm{position:absolute;top:34px;width:10px;height:14px;background:#E70012;border-radius:5px}
+.mario .arm.left{left:-4px;transform:rotate(-20deg)}
+.mario .arm.right{left:38px;transform:rotate(20deg)}
+/* 手套 */
+.mario .glove{position:absolute;top:46px;width:10px;height:8px;background:#fff;border-radius:50%;border:1px solid #ddd}
+.mario .glove.left{left:-4px}
+.mario .glove.right{left:38px}
+/* 腿 */
+.mario .leg{position:absolute;top:48px;width:12px;height:10px;background:#0045AD;border-radius:0 0 4px 4px}
+.mario .leg.left{left:8px}
+.mario .leg.right{left:24px}
+/* 鞋 */
+.mario .shoe{position:absolute;top:54px;width:16px;height:8px;background:#5C3317;border-radius:0 0 6px 6px}
+.mario .shoe.left{left:4px}
+.mario .shoe.right{left:24px}
 
 /* 大马里欧 */
-.mario.big{width:50px;height:65px}
-.mario.big .hat{left:5px;width:40px;height:15px}
-.mario.big .face{left:10px;width:30px;height:22px}
-.mario.big .eye{top:16px;left:16px;width:5px;height:6px}
-.mario.big .mustache{top:22px;left:12px;width:20px;height:5px}
-.mario.big .body{left:5px;width:40px;height:20px}
-.mario.big .button{top:36px;left:19px;width:7px;height:7px}
-.mario.big .arm{top:34px;width:10px;height:15px}
-.mario.big .arm.right{left:40px}
-.mario.big .leg{top:52px;left:10px;width:12px;height:15px}
-.mario.big .leg.right{left:28px}
+.mario.big{width:56px;height:72px}
+.mario.big .hat{left:3px;width:50px;height:18px;border-radius:15px 15px 0 0}
+.mario.big .hat::after{top:13px;left:-2px;width:54px;height:8px}
+.mario.big .face{left:8px;width:40px;height:26px;border-radius:0 0 18px 18px}
+.mario.big .eye{top:20px;width:6px;height:8px}
+.mario.big .eye.left{left:16px}
+.mario.big .eye.right{left:30px}
+.mario.big .nose{top:25px;left:21px;width:12px;height:10px}
+.mario.big .mustache{top:32px;left:10px;width:36px;height:10px}
+.mario.big .body{left:5px;width:46px;height:24px}
+.mario.big .overall{left:8px;width:40px;height:18px}
+.mario.big .strap{top:40px;height:12px}
+.mario.big .strap.left{left:13px}
+.mario.big .strap.right{left:37px}
+.mario.big .button{top:46px;width:6px;height:6px}
+.mario.big .button.left{left:15px}
+.mario.big .button.right{left:33px}
+.mario.big .arm{top:42px;width:12px;height:18px}
+.mario.big .arm.left{left:-5px}
+.mario.big .arm.right{left:49px}
+.mario.big .glove{top:56px;width:12px;height:10px}
+.mario.big .glove.left{left:-5px}
+.mario.big .glove.right{left:49px}
+.mario.big .leg{top:62px;width:14px;height:12px}
+.mario.big .leg.left{left:10px}
+.mario.big .leg.right{left:32px}
+.mario.big .shoe{top:70px;width:18px;height:10px}
+.mario.big .shoe.left{left:6px}
+.mario.big .shoe.right{left:32px}
 
 /* 跳跃 */
 .mario.jump{animation:marioJump .5s ease}
@@ -161,14 +211,24 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden
 <div id="mario" class="mario">
   <div class="hat"></div>
   <div class="face"></div>
-  <div class="eye"></div>
+  <div class="eye left"></div>
+  <div class="eye right"></div>
+  <div class="nose"></div>
   <div class="mustache"></div>
   <div class="body"></div>
-  <div class="button"></div>
-  <div class="arm"></div>
+  <div class="overall"></div>
+  <div class="strap left"></div>
+  <div class="strap right"></div>
+  <div class="button left"></div>
+  <div class="button right"></div>
+  <div class="arm left"></div>
   <div class="arm right"></div>
-  <div class="leg"></div>
+  <div class="glove left"></div>
+  <div class="glove right"></div>
+  <div class="leg left"></div>
   <div class="leg right"></div>
+  <div class="shoe left"></div>
+  <div class="shoe right"></div>
 </div>
 
 <!-- 砖块容器 -->
