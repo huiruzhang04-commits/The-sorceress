@@ -2,110 +2,171 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>马里欧学英语</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🍄 马里欧单词冒险</title>
 <style>
-body{font-family:Arial,'Microsoft YaHei',sans-serif;background:#87CEEB;margin:0;padding:10px;min-height:100vh}
-.box{max-width:500px;margin:0 auto;background:#fff;border-radius:15px;padding:20px}
-.center{text-align:center}
-.title{color:#FF6600;font-size:28px;margin:10px 0}
-.btn{background:#FF6600;color:#fff;border:none;padding:15px 40px;font-size:20px;border-radius:25px;cursor:pointer;margin:10px}
-.btn:hover{background:#FF8800}
-.word-box{background:#FFFACD;border:3px solid #FFD700;border-radius:10px;padding:20px;margin:15px 0;text-align:center}
-.word-en{font-size:36px;font-weight:bold;color:#FF6600}
-.word-pron{color:#888;font-size:16px}
-.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
-.choice{background:#f0f0f0;border:2px solid #ccc;padding:15px;font-size:18px;border-radius:10px;cursor:pointer}
-.choice:hover{background:#FFE4B5;border-color:#FF6600}
-.choice.right{background:#90EE90;border-color:green}
-.choice.wrong{background:#FFB6C1;border-color:red}
-.feedback{font-size:20px;text-align:center;margin:10px 0;height:30px}
-.next-btn{background:#4CAF50;color:#fff;border:none;padding:12px 30px;font-size:18px;border-radius:20px;cursor:pointer;display:none;margin:10px auto}
-.stats{display:flex;justify-content:center;gap:15px;margin:10px 0;font-size:16px}
-.stat{background:#FFE4B5;padding:5px 15px;border-radius:15px}
-.progress{height:10px;background:#eee;border-radius:5px;margin:10px 0}
-.progress-bar{height:100%;background:#FFD700;border-radius:5px;transition:width .3s}
-.end-emoji{font-size:60px;margin:15px 0}
-.result{font-size:18px;line-height:2}
-.page{display:none}
-.page.active{display:block}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden;touch-action:none}
+
+/* 游戏画面 */
+#game{width:100%;max-width:800px;height:100vh;margin:0 auto;position:relative;background:linear-gradient(180deg,#5C94FC 70%,#E86A17 70%);}
+
+/* 云朵 */
+.cloud{position:absolute;font-size:40px;opacity:.8;animation:float 20s linear infinite}
+@keyframes float{from{left:-100px}to{left:100%}}
+
+/* 地面 */
+.ground{position:absolute;bottom:0;width:100%;height:30%;background:linear-gradient(180deg,#E86A17,#8B4513);border-top:4px solid #5C3317}
+.ground::before{content:'';position:absolute;top:0;left:0;right:0;height:20px;background-image:repeating-linear-gradient(90deg,transparent,transparent 30px,#5C3317 30px,#5C3317 35px)}
+
+/* 砖块 */
+.brick{position:absolute;width:60px;height:60px;background:linear-gradient(135deg,#B85C38,#8B4513);border:3px solid #5C3317;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .1s;box-shadow:0 4px 8px rgba(0,0,0,.3);z-index:10}
+.brick:active{transform:translateY(4px)}
+.brick .q{color:#FFD700;font-size:28px;font-weight:bold;text-shadow:2px 2px 0 #B8860B}
+.brick.broken{background:#666;border-color:#444;pointer-events:none}
+.brick.broken .q{display:none}
+.brick .coin-pop{position:absolute;top:-30px;font-size:24px;animation:coinUp .5s ease-out forwards}
+@keyframes coinUp{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-50px);opacity:0}}
+
+/* 马里欧 */
+#mario{position:absolute;bottom:30%;left:50px;font-size:50px;z-index:20;transition:all .3s}
+#mario.jump{animation:marioJump .4s ease}
+#mario.move{left:200px}
+@keyframes marioJump{0%,100%{transform:translateY(0)}50%{transform:translateY(-150px)}}
+
+/* 管道 */
+.pipe{position:absolute;bottom:30%;width:70px;height:100px;background:linear-gradient(90deg,#00AA00,#008800);border:3px solid #006600;border-radius:5px 5px 0 0}
+.pipe::before{content:'';position:absolute;top:-20px;left:-5px;width:80px;height:25px;background:linear-gradient(90deg,#00CC00,#009900);border:3px solid #006600;border-radius:5px}
+
+/* 怪物 */
+.enemy{position:absolute;bottom:30%;font-size:35px;animation:enemyMove 3s linear infinite}
+@keyframes enemyMove{0%,100%{transform:translateX(0)}50%{transform:translateX(-100px)}}
+
+/* 弹窗 */
+.popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#fff;border:5px solid #E86A17;border-radius:20px;padding:25px;text-align:center;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.5);transition:transform .3s;min-width:300px}
+.popup.show{transform:translate(-50%,-50%) scale(1)}
+.popup h3{color:#E86A17;font-size:24px;margin-bottom:10px}
+.popup .word-en{font-size:36px;font-weight:bold;color:#333;margin:10px 0}
+.popup .word-pron{color:#888;font-size:16px}
+.popup .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
+.popup .choice{padding:12px;font-size:18px;border:2px solid #ddd;border-radius:10px;background:#f9f9f9;cursor:pointer}
+.popup .choice:hover{background:#FFE4B5;border-color:#E86A17}
+.popup .choice.right{background:#90EE90;border-color:green}
+.popup .choice.wrong{background:#FFB6C1;border-color:red}
+.popup .feedback{font-size:18px;margin:10px 0;height:25px;font-weight:bold}
+
+/* HUD */
+#hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:50}
+#hud div{background:rgba(0,0,0,.5);color:#fff;padding:8px 15px;border-radius:20px;font-size:16px;font-weight:bold}
+
+/* 开始/结束画面 */
+.screen{position:absolute;inset:0;background:linear-gradient(180deg,#5C94FC 60%,#E86A17 60%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;color:#fff;text-align:center}
+.screen.hide{display:none}
+.screen h1{font-size:42px;text-shadow:3px 3px 0 #E86A17;margin-bottom:10px}
+.screen p{font-size:18px;margin-bottom:20px;opacity:.9}
+.screen .big{font-size:80px;margin:20px 0;animation:bounce 1s ease infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.btn{padding:15px 50px;font-size:24px;border:none;border-radius:50px;background:linear-gradient(135deg,#E86A17,#FF6B35);color:#fff;cursor:pointer;margin:10px;box-shadow:0 5px 15px rgba(232,106,23,.4)}
+.btn:hover{transform:scale(1.05)}
+.story{background:rgba(0,0,0,.6);padding:20px;border-radius:15px;margin:15px;max-width:400px;font-size:16px;line-height:1.8}
+
+/* 公主 */
+.princess{position:absolute;bottom:30%;right:50px;font-size:50px;animation:princessFloat 2s ease-in-out infinite}
+@keyframes princessFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 </style>
 </head>
 <body>
+<div id="game">
 
-<div class="box">
-
-<!-- 开始页 -->
-<div id="page-start" class="page active center">
-  <h1 class="title">🍄 马里欧学英语</h1>
-  <p style="color:#666;font-size:18px">看英文单词，选正确的中文意思</p>
-  <div style="font-size:80px;margin:20px">🍄</div>
-  <button class="btn" onclick="startGame()">开始游戏</button>
-  <p style="color:#888;margin-top:15px">共20题，适合7岁小朋友</p>
+<!-- HUD -->
+<div id="hud">
+  <div>🍄 马里欧单词冒险</div>
+  <div>🪙 <span id="coins">0</span></div>
+  <div>❤️ <span id="lives">3</span></div>
+  <div>⭐ <span id="score">0</span></div>
 </div>
 
-<!-- 游戏页 -->
-<div id="page-game" class="page">
-  <div class="center">
-    <h2 class="title">🍄 马里欧学英语</h2>
-    <div class="stats">
-      <span class="stat">🪙 <b id="coins">0</b></span>
-      <span class="stat">⭐ <b id="score">0</b>分</span>
-      <span class="stat">题 <b id="qnum">1</b>/20</span>
-    </div>
-  </div>
-  <div class="progress"><div class="progress-bar" id="progress" style="width:0%"></div></div>
-  
-  <div class="word-box">
-    <div class="word-pron" id="pron"></div>
-    <div class="word-en" id="word"></div>
-    <div style="color:#666;margin-top:10px">这个单词是什么意思？</div>
-  </div>
-  
-  <div class="feedback" id="feedback"></div>
-  
-  <div class="choices" id="choices"></div>
-  
-  <div class="center">
-    <button class="next-btn" id="nextbtn" onclick="nextQ()">下一题 →</button>
-  </div>
+<!-- 云朵 -->
+<div class="cloud" style="top:10%;animation-duration:25s">☁️</div>
+<div class="cloud" style="top:20%;animation-duration:30s;animation-delay:-10s">☁️</div>
+
+<!-- 地面 -->
+<div class="ground"></div>
+
+<!-- 马里欧 -->
+<div id="mario">🍄</div>
+
+<!-- 公主（终点） -->
+<div class="princess" id="princess" style="display:none">👸</div>
+
+<!-- 砖块容器 -->
+<div id="bricks"></div>
+
+<!-- 管道 -->
+<div class="pipe" style="left:30%"></div>
+<div class="pipe" style="left:60%"></div>
+
+<!-- 弹窗 -->
+<div class="popup" id="popup">
+  <h3>🧱 顶到了问号砖！</h3>
+  <div class="word-pron" id="popup-pron"></div>
+  <div class="word-en" id="popup-word"></div>
+  <div style="color:#666;margin:10px 0">这个单词是什么意思？</div>
+  <div class="choices" id="popup-choices"></div>
+  <div class="feedback" id="popup-feedback"></div>
 </div>
 
-<!-- 结束页 -->
-<div id="page-end" class="page center">
-  <h2 class="title">🎉 游戏结束！</h2>
-  <div class="end-emoji" id="emoji">🏆</div>
-  <div class="result">
-    <div>🪙 金币：<b id="endcoins">0</b></div>
-    <div>⭐ 得分：<b id="endscore">0</b></div>
-    <div>✅ 对：<b id="endright">0</b>题</div>
-    <div>❌ 错：<b id="endwrong">0</b>题</div>
+<!-- 开始画面 -->
+<div class="screen" id="start-screen">
+  <h1>🍄 马里欧单词冒险</h1>
+  <div class="big">🍄</div>
+  <div class="story">
+    <p>👸 公主被库巴抓走了！</p>
+    <p>马里欧需要顶碎所有问号砖，</p>
+    <p>答对单词才能救出公主！</p>
+    <p>💡 点击问号砖或按空格键</p>
+  </div>
+  <button class="btn" onclick="startGame()">开始冒险！</button>
+</div>
+
+<!-- 结束画面 -->
+<div class="screen hide" id="end-screen">
+  <h1 id="end-title">🎉 恭喜通关！</h1>
+  <div class="big" id="end-emoji">👸</div>
+  <div class="story">
+    <p id="end-text">马里欧成功救出了公主！</p>
+    <p>🪙 金币：<span id="end-coins">0</span></p>
+    <p>⭐ 得分：<span id="end-score">0</span></p>
+    <p>✅ 答对：<span id="end-right">0</span>题</p>
   </div>
   <button class="btn" onclick="startGame()">再玩一次</button>
+</div>
+
+<!-- 失败画面 -->
+<div class="screen hide" id="fail-screen">
+  <h1>😢 游戏结束</h1>
+  <div class="big">😢</div>
+  <div class="story">
+    <p>马里欧失败了...</p>
+    <p>不要放弃，再试一次！</p>
+  </div>
+  <button class="btn" onclick="startGame()">重新挑战</button>
 </div>
 
 </div>
 
 <script>
+// 单词库
 const WORDS=[
   {en:'red',cn:'红色',pron:'/red/'},{en:'blue',cn:'蓝色',pron:'/bluː/'},
   {en:'green',cn:'绿色',pron:'/ɡriːn/'},{en:'yellow',cn:'黄色',pron:'/ˈjel.əʊ/'},
   {en:'one',cn:'一',pron:'/wʌn/'},{en:'two',cn:'二',pron:'/tuː/'},
   {en:'three',cn:'三',pron:'/θriː/'},{en:'cat',cn:'猫',pron:'/kæt/'},
-  {en:'dog',cn:'狗',pron:'/dɒɡ/'},{en:'bird',cn:'鸟',pron:'/bɜːd/'},
-  {en:'apple',cn:'苹果',pron:'/ˈæp.əl/'},{en:'banana',cn:'香蕉',pron:'/bəˈnɑː.nə/'},
-  {en:'head',cn:'头',pron:'/hed/'},{en:'eye',cn:'眼睛',pron:'/aɪ/'},
-  {en:'hand',cn:'手',pron:'/hænd/'},{en:'run',cn:'跑',pron:'/rʌn/'},
-  {en:'jump',cn:'跳',pron:'/dʒʌmp/'},{en:'eat',cn:'吃',pron:'/iːt/'},
-  {en:'father',cn:'爸爸',pron:'/ˈfɑː.ðər/'},{en:'mother',cn:'妈妈',pron:'/ˈmʌð.ər/'}
+  {en:'dog',cn:'狗',pron:'/dɒɡ/'},{en:'bird',cn:'鸟',pron:'/bɜːd/'}
 ];
 
-let q=0,coins=0,score=0,right=0,wrong=0,current=null;
-
-function show(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
+let coins=0,score=0,lives=3,currentQ=0,currentWord=null,answered=0;
+let marioX=50;
 
 function shuffle(a){
   for(let i=a.length-1;i>0;i--){
@@ -116,70 +177,160 @@ function shuffle(a){
 }
 
 function startGame(){
-  q=0;coins=0;score=0;right=0;wrong=0;
-  show('page-game');
-  showQ();
+  coins=0;score=0;lives=3;currentQ=0;answered=0;marioX=50;
+  updateHUD();
+  
+  document.getElementById('start-screen').classList.add('hide');
+  document.getElementById('end-screen').classList.add('hide');
+  document.getElementById('fail-screen').classList.add('hide');
+  document.getElementById('princess').style.display='none';
+  
+  // 生成砖块
+  const bricksDiv=document.getElementById('bricks');
+  bricksDiv.innerHTML='';
+  WORDS.forEach((word,i)=>{
+    const brick=document.createElement('div');
+    brick.className='brick';
+    brick.style.left=(15+i*8)+'%';
+    brick.style.bottom=(35+Math.random()*20)+'%';
+    brick.innerHTML='<span class="q">?</span>';
+    brick.dataset.index=i;
+    brick.onclick=()=>hitBrick(i);
+    bricksDiv.appendChild(brick);
+  });
+  
+  // 马里欧位置
+  document.getElementById('mario').style.left='50px';
 }
 
-function showQ(){
-  current=WORDS[q];
-  document.getElementById('pron').textContent=current.pron;
-  document.getElementById('word').textContent=current.en;
-  document.getElementById('qnum').textContent=q+1;
-  document.getElementById('feedback').textContent='';
-  document.getElementById('nextbtn').style.display='none';
-  document.getElementById('progress').style.width=(q/WORDS.length*100)+'%';
+function hitBrick(index){
+  const bricks=document.querySelectorAll('.brick');
+  const brick=bricks[index];
+  if(brick.classList.contains('broken'))return;
   
-  const others=WORDS.filter(w=>w.en!==current.en);
+  // 马里欧移动并跳跃
+  const mario=document.getElementById('mario');
+  const brickRect=brick.getBoundingClientRect();
+  const gameRect=document.getElementById('game').getBoundingClientRect();
+  
+  marioX=brickRect.left-gameRect.left-20;
+  mario.style.left=marioX+'px';
+  mario.classList.add('jump');
+  
+  setTimeout(()=>{
+    mario.classList.remove('jump');
+    
+    // 砖块破碎
+    brick.classList.add('broken');
+    
+    // 金币弹出
+    const coin=document.createElement('div');
+    coin.className='coin-pop';
+    coin.textContent='🪙';
+    brick.appendChild(coin);
+    setTimeout(()=>coin.remove(),500);
+    
+    // 显示单词
+    showWord(WORDS[index]);
+  },300);
+}
+
+function showWord(word){
+  currentWord=word;
+  const popup=document.getElementById('popup');
+  
+  document.getElementById('popup-pron').textContent=word.pron;
+  document.getElementById('popup-word').textContent=word.en;
+  document.getElementById('popup-feedback').textContent='';
+  
+  // 选项
+  const others=WORDS.filter(w=>w.en!==word.en);
   const wrongs=shuffle(others).slice(0,3).map(w=>w.cn);
-  const opts=shuffle([current.cn,...wrongs]);
+  const opts=shuffle([word.cn,...wrongs]);
   
-  const box=document.getElementById('choices');
-  box.innerHTML='';
+  const choicesDiv=document.getElementById('popup-choices');
+  choicesDiv.innerHTML='';
   opts.forEach(opt=>{
     const btn=document.createElement('button');
     btn.className='choice';
     btn.textContent=opt;
-    btn.onclick=function(){check(this,opt)};
-    box.appendChild(btn);
+    btn.onclick=function(){checkAnswer(this,opt)};
+    choicesDiv.appendChild(btn);
   });
+  
+  popup.classList.add('show');
 }
 
-function check(btn,ans){
+function checkAnswer(btn,ans){
   document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
-  const fb=document.getElementById('feedback');
+  const fb=document.getElementById('popup-feedback');
   
-  if(ans===current.cn){
+  if(ans===currentWord.cn){
     btn.className='choice right';
-    fb.innerHTML='<span style="color:green">✅ 太棒了！+10金币 +100分</span>';
-    coins+=10;score+=100;right++;
+    fb.innerHTML='<span style="color:green">✅ 答对了！+10金币 +100分</span>';
+    coins+=10;score+=100;answered++;
+    
+    // 检查是否通关
+    if(answered>=WORDS.length){
+      setTimeout(()=>{
+        document.getElementById('popup').classList.remove('show');
+        showWin();
+      },1500);
+    }else{
+      setTimeout(()=>document.getElementById('popup').classList.remove('show'),1500);
+    }
   }else{
     btn.className='choice wrong';
     document.querySelectorAll('.choice').forEach(b=>{
-      if(b.textContent===current.cn)b.className='choice right';
+      if(b.textContent===currentWord.cn)b.className='choice right';
     });
-    fb.innerHTML='<span style="color:red">❌ 不对，答案是：'+current.cn+'</span>';
-    wrong++;
+    fb.innerHTML='<span style="color:red">❌ 不对，答案是：'+currentWord.cn+'</span>';
+    lives--;
+    
+    if(lives<=0){
+      setTimeout(()=>{
+        document.getElementById('popup').classList.remove('show');
+        showFail();
+      },1500);
+    }else{
+      setTimeout(()=>document.getElementById('popup').classList.remove('show'),1500);
+    }
   }
   
-  document.getElementById('coins').textContent=coins;
-  document.getElementById('score').textContent=score;
-  document.getElementById('nextbtn').style.display='inline-block';
+  updateHUD();
 }
 
-function nextQ(){
-  q++;
-  if(q>=WORDS.length){
-    show('page-end');
-    document.getElementById('endcoins').textContent=coins;
-    document.getElementById('endscore').textContent=score;
-    document.getElementById('endright').textContent=right;
-    document.getElementById('endwrong').textContent=wrong;
-    document.getElementById('emoji').textContent=wrong===0?'🏆':wrong<=3?'😊':wrong<=6?'😐':'😢';
-  }else{
-    showQ();
-  }
+function updateHUD(){
+  document.getElementById('coins').textContent=coins;
+  document.getElementById('score').textContent=score;
+  document.getElementById('lives').textContent=lives;
 }
+
+function showWin(){
+  document.getElementById('princess').style.display='block';
+  setTimeout(()=>{
+    document.getElementById('end-coins').textContent=coins;
+    document.getElementById('end-score').textContent=score;
+    document.getElementById('end-right').textContent=answered;
+    document.getElementById('end-screen').classList.remove('hide');
+  },1000);
+}
+
+function showFail(){
+  document.getElementById('fail-screen').classList.remove('hide');
+}
+
+// 键盘控制
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'||e.code==='ArrowUp'){
+    e.preventDefault();
+    const bricks=document.querySelectorAll('.brick:not(.broken)');
+    if(bricks.length>0){
+      const idx=parseInt(bricks[0].dataset.index);
+      hitBrick(idx);
+    }
+  }
+});
 </script>
 </body>
 </html>
