@@ -58,47 +58,47 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden
 /* ========== 游戏层 ========== */
 #game-layer{position:absolute;inset:0;z-index:50}
 
-/* 马里欧 - 像素艺术风格 */
-.mario{position:absolute;bottom:40%;left:100px;width:48px;height:64px;z-index:100;transition:none}
-/* 帽子 */
-.mario .hat{position:absolute;top:0;left:4px;width:40px;height:16px;background:#E70012;border-radius:10px 10px 0 0;box-shadow:inset -4px 0 0 rgba(0,0,0,.2)}
-.mario .hat::after{content:'';position:absolute;top:12px;left:-4px;width:48px;height:8px;background:#E70012;border-radius:4px}
-/* 脸部 */
-.mario .face{position:absolute;top:16px;left:8px;width:32px;height:22px;background:#FFCC99;border-radius:0 0 16px 16px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.1)}
-/* 眼睛 */
-.mario .eye{position:absolute;top:19px;width:6px;height:8px;background:#000;border-radius:50%}
-.mario .eye.left{left:13px}.mario .eye.right{left:25px}
-.mario .eye::after{content:'';position:absolute;top:1px;right:1px;width:2px;height:2px;background:#fff;border-radius:50%}
-/* 鼻子 */
-.mario .nose{position:absolute;top:24px;left:18px;width:12px;height:10px;background:#FFCC99;border-radius:50%;border:1px solid #E8B89D;z-index:5;box-shadow:inset -2px -2px 0 rgba(0,0,0,.1)}
-/* 胡子 */
-.mario .mustache{position:absolute;top:30px;left:6px;width:36px;height:10px;background:#000;border-radius:0 0 12px 12px}
-.mario .mustache::before{content:'';position:absolute;top:-3px;left:-2px;width:12px;height:8px;background:#000;border-radius:50%}
-.mario .mustache::after{content:'';position:absolute;top:-3px;right:-2px;width:12px;height:8px;background:#000;border-radius:50%}
-/* 身体 */
-.mario .body{position:absolute;top:36px;left:6px;width:36px;height:20px;background:#E70012;border-radius:4px;box-shadow:inset -3px 0 0 rgba(0,0,0,.2)}
+/* 马里欧 - 全新像素艺术风格 */
+.mario{position:absolute;bottom:40%;left:100px;width:52px;height:68px;z-index:100;transition:none}
+/* 帽子 - 更大更圆 */
+.mario .hat{position:absolute;top:0;left:6px;width:40px;height:18px;background:#E70012;border-radius:20px 20px 0 0;box-shadow:inset -4px 0 0 rgba(0,0,0,.2),0 2px 0 rgba(0,0,0,.1)}
+.mario .hat::after{content:'';position:absolute;top:14px;left:-6px;width:52px;height:10px;background:#E70012;border-radius:5px;box-shadow:inset -4px 0 0 rgba(0,0,0,.2)}
+/* 脸部 - 更圆润 */
+.mario .face{position:absolute;top:18px;left:10px;width:32px;height:24px;background:#FFCC99;border-radius:0 0 18px 18px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.1)}
+/* 眼睛 - 更大更有神 */
+.mario .eye{position:absolute;top:22px;width:7px;height:9px;background:#000;border-radius:50%}
+.mario .eye.left{left:14px}.mario .eye.right{left:27px}
+.mario .eye::after{content:'';position:absolute;top:1px;right:1px;width:3px;height:3px;background:#fff;border-radius:50%}
+/* 鼻子 - 更突出 */
+.mario .nose{position:absolute;top:28px;left:19px;width:14px;height:12px;background:#FFCC99;border-radius:50%;border:2px solid #E8B89D;z-index:5;box-shadow:inset -2px -2px 0 rgba(0,0,0,.1),0 2px 0 rgba(0,0,0,.1)}
+/* 胡子 - 更浓密像原版 */
+.mario .mustache{position:absolute;top:36px;left:4px;width:44px;height:12px;background:#000;border-radius:0 0 16px 16px}
+.mario .mustache::before{content:'';position:absolute;top:-4px;left:-2px;width:16px;height:10px;background:#000;border-radius:50%}
+.mario .mustache::after{content:'';position:absolute;top:-4px;right:-2px;width:16px;height:10px;background:#000;border-radius:50%}
+/* 身体 - 更壮实 */
+.mario .body{position:absolute;top:44px;left:8px;width:36px;height:22px;background:#E70012;border-radius:6px;box-shadow:inset -3px 0 0 rgba(0,0,0,.2)}
 /* 背带裤 */
-.mario .overall{position:absolute;top:38px;left:10px;width:28px;height:16px;background:#0045AD;border-radius:2px}
-.mario .strap{position:absolute;top:36px;width:5px;height:12px;background:#0045AD}
-.mario .strap.left{left:12px}.mario .strap.right{left:31px}
-.mario .button{position:absolute;top:42px;width:6px;height:6px;background:#FFD700;border-radius:50%;box-shadow:inset -1px -1px 0 rgba(0,0,0,.2)}
-.mario .button.left{left:14px}.mario .button.right{left:28px}
-/* 手臂 */
-.mario .arm{position:absolute;top:38px;width:12px;height:16px;background:#E70012;border-radius:6px}
-.mario .arm.left{left:-4px;transform:rotate(-25deg)}
-.mario .arm.right{left:40px;transform:rotate(25deg)}
-.mario .glove{position:absolute;top:52px;width:12px;height:10px;background:#fff;border-radius:50%;border:1px solid #ddd;box-shadow:inset -2px -2px 0 rgba(0,0,0,.1)}
-.mario .glove.left{left:-4px}.mario .glove.right{left:40px}
-/* 腿 */
-.mario .leg{position:absolute;top:54px;width:14px;height:12px;background:#0045AD;border-radius:0 0 6px 6px}
-.mario .leg.left{left:10px}.mario .leg.right{left:24px}
-/* 鞋子 */
-.mario .shoe{position:absolute;top:62px;width:18px;height:10px;background:#5C3317;border-radius:0 0 8px 8px;box-shadow:inset -2px 0 0 rgba(0,0,0,.2)}
+.mario .overall{position:absolute;top:46px;left:12px;width:28px;height:18px;background:#0045AD;border-radius:4px}
+.mario .strap{position:absolute;top:44px;width:6px;height:14px;background:#0045AD;border-radius:2px}
+.mario .strap.left{left:14px}.mario .strap.right{left:32px}
+.mario .button{position:absolute;top:50px;width:7px;height:7px;background:#FFD700;border-radius:50%;box-shadow:inset -1px -1px 0 rgba(0,0,0,.2),0 1px 0 rgba(255,255,255,.5)}
+.mario .button.left{left:16px}.mario .button.right{left:29px}
+/* 手臂 - 更粗 */
+.mario .arm{position:absolute;top:46px;width:14px;height:18px;background:#E70012;border-radius:7px}
+.mario .arm.left{left:-6px;transform:rotate(-30deg)}
+.mario .arm.right{left:44px;transform:rotate(30deg)}
+.mario .glove{position:absolute;top:60px;width:14px;height:12px;background:#fff;border-radius:50%;border:2px solid #ddd;box-shadow:inset -2px -2px 0 rgba(0,0,0,.1)}
+.mario .glove.left{left:-6px}.mario .glove.right{left:44px}
+/* 腿 - 更短更可爱 */
+.mario .leg{position:absolute;top:64px;width:16px;height:14px;background:#0045AD;border-radius:0 0 8px 8px}
+.mario .leg.left{left:12px}.mario .leg.right{left:24px}
+/* 鞋子 - 更大更像原版 */
+.mario .shoe{position:absolute;top:74px;width:22px;height:14px;background:#5C3317;border-radius:0 0 12px 12px;box-shadow:inset -3px 0 0 rgba(0,0,0,.2),0 2px 0 rgba(0,0,0,.2)}
 .mario .shoe.left{left:6px}.mario .shoe.right{left:24px}
 
 /* 马里欧动画状态 */
-.mario.jump{animation:marioJump .5s ease}
-@keyframes marioJump{0%,100%{transform:translateY(0)}50%{transform:translateY(-180px)}}
+.mario.jump{animation:marioJump .6s ease}
+@keyframes marioJump{0%{transform:translateY(0)}40%{transform:translateY(-150px)}100%{transform:translateY(0)}}
 .mario.run .leg.left{animation:runLeg .3s infinite}
 .mario.run .leg.right{animation:runLeg .3s infinite .15s}
 @keyframes runLeg{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
@@ -552,18 +552,16 @@ function gameUpdate(){
 }
 
 function updatePhysics(){
+  // 水平移动
   if(keys.left){
     velocityX-=ACCELERATION;
     if(velocityX<-MOVE_SPEED)velocityX=-MOVE_SPEED;
-    document.getElementById('mario').classList.add('run');
   }else if(keys.right){
     velocityX+=ACCELERATION;
     if(velocityX>MOVE_SPEED)velocityX=MOVE_SPEED;
-    document.getElementById('mario').classList.add('run');
   }else{
     velocityX*=FRICTION;
     if(Math.abs(velocityX)<0.1)velocityX=0;
-    document.getElementById('mario').classList.remove('run');
   }
   
   marioX+=velocityX;
@@ -572,35 +570,22 @@ function updatePhysics(){
   if(marioX<20)marioX=20;
   if(marioX>gameW-60)marioX=gameW-60;
   
-  if(keys.up&&isOnGround&&!isJumping){
-    isJumping=true;
+  // 跳跃系统 - 简化版
+  if(keys.up&&isOnGround){
     isOnGround=false;
-    velocityY=JUMP_FORCE; // JUMP_FORCE = -12，向上跳
-    jumpTimer=0;
+    marioY=-120; // 直接设置跳跃高度（负数=向上）
     sfxJump();
-  }
-  
-  // 长按跳跃键增加跳跃高度（但保持向上）
-  if(keys.up&&isJumping&&jumpTimer<maxJumpTime&&velocityY<0){
-    velocityY+=JUMP_FORCE*0.08; // 额外的向上力
-    jumpTimer++;
-  }
-  
-  if(!isOnGround){
-    velocityY+=GRAVITY;
-    marioY+=velocityY;
     
-    // 限制最大下落速度
-    if(velocityY>15)velocityY=15;
+    // 使用CSS动画实现跳跃
+    const mario=document.getElementById('mario');
+    mario.classList.add('jump');
     
-    // 落地检测 - 当marioY回到0或以下
-    if(marioY>=0){
+    // 动画结束后落地
+    setTimeout(()=>{
+      mario.classList.remove('jump');
       marioY=0;
-      velocityY=0;
       isOnGround=true;
-      isJumping=false;
-      jumpTimer=0;
-    }
+    },600);
   }
   
   updateMarioPosition();
@@ -610,17 +595,11 @@ function updateMarioPosition(){
   const mario=document.getElementById('mario');
   mario.style.left=marioX+'px';
   
-  // 使用像素单位而不是百分比，避免跳跃问题
+  // 计算底部位置（地面高度 + 跳跃偏移）
   const groundHeight=window.innerHeight*0.4;
-  const jumpHeight=marioY*5; // 缩放跳跃高度
-  mario.style.bottom=(groundHeight+jumpHeight)+'px';
+  mario.style.bottom=(groundHeight+marioY)+'px';
   
-  if(!isOnGround){
-    mario.classList.add('jump');
-  }else{
-    mario.classList.remove('jump');
-  }
-  
+  // 朝向
   if(velocityX>0.5)mario.style.transform='scaleX(1)';
   else if(velocityX<-0.5)mario.style.transform='scaleX(-1)';
 }
