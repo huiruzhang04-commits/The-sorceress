@@ -2,367 +2,172 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>🍄 超级马里欧单词冒险</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden;touch-action:none;user-select:none}
+html,body{width:100%;height:100%;overflow:hidden}
+body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;touch-action:none;user-select:none}
 
-#game{width:100%;max-width:900px;height:100vh;margin:0 auto;position:relative;overflow:hidden}
+#game{width:100%;height:100%;position:relative;overflow:hidden}
 
 /* ========== 背景层 ========== */
-#bg-layer{position:absolute;inset:0;z-index:1}
-
-/* 天空渐变 */
-.sky{position:absolute;inset:0;background:linear-gradient(180deg,#5C94FC 0%,#87CEEB 40%,#B0E0E6 60%,#E86A17 60%,#8B4513 100%)}
-
-/* 太阳 */
-.sun{position:absolute;top:30px;right:50px;width:60px;height:60px;background:#FFD700;border-radius:50%;box-shadow:0 0 40px #FFD700,0 0 80px rgba(255,215,0,.3);animation:sunPulse 3s ease infinite}
+.sky{position:absolute;inset:0;background:linear-gradient(180deg,#5C94FC 0%,#87CEEB 50%,#E86A17 50%,#8B4513 100%)}
+.sun{position:absolute;top:5%;right:10%;width:50px;height:50px;background:#FFD700;border-radius:50%;box-shadow:0 0 30px #FFD700;animation:sunPulse 3s ease infinite}
 @keyframes sunPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 
-/* 云朵 - 多层视差 */
-.cloud{position:absolute;font-size:50px;opacity:.8;z-index:2}
-.cloud-1{top:8%;animation:cloudMove1 25s linear infinite}
-.cloud-2{top:15%;animation:cloudMove2 35s linear infinite;animation-delay:-10s;font-size:40px;opacity:.6}
-.cloud-3{top:5%;animation:cloudMove3 45s linear infinite;animation-delay:-20s;font-size:35px;opacity:.4}
-@keyframes cloudMove1{from{left:100%}to{left:-150px}}
-@keyframes cloudMove2{from{left:100%}to{left:-150px}}
-@keyframes cloudMove3{from{left:100%}to{left:-150px}}
+.cloud{position:absolute;font-size:40px;opacity:.7}
+.cloud-1{top:10%;animation:cloudMove 30s linear infinite}
+.cloud-2{top:15%;animation:cloudMove 40s linear infinite;animation-delay:-15s;font-size:30px;opacity:.5}
+@keyframes cloudMove{from{left:100%}to{left:-150px}}
 
-/* 远山 */
-.mountains{position:absolute;bottom:40%;left:0;width:200%;height:150px;z-index:3}
-.mountain{position:absolute;bottom:0;width:0;height:0;border-left:80px solid transparent;border-right:80px solid transparent;border-bottom:120px solid #4A7C59}
-.mountain:nth-child(2){left:150px;border-bottom-color:#3D6B4A;border-bottom-width:100px}
-.mountain:nth-child(3){left:300px;border-bottom-width:140px}
-.mountain:nth-child(4){left:500px;border-bottom-color:#3D6B4A;border-bottom-width:90px}
-
-/* 地面 - 多层 */
-.ground-layer{position:absolute;bottom:0;width:200%;height:40%;z-index:10}
-.ground-top{position:absolute;top:0;left:0;width:100%;height:20px;background:linear-gradient(180deg,#E86A17,#D2691E);border-top:3px solid #5C3317}
-.ground-top::before{content:'';position:absolute;top:3px;left:0;width:100%;height:4px;background-image:repeating-linear-gradient(90deg,transparent,transparent 20px,rgba(0,0,0,.1) 20px,rgba(0,0,0,.1) 22px)}
-.ground-body{position:absolute;top:20px;left:0;width:100%;height:calc(100% - 20px);background:linear-gradient(180deg,#D2691E,#8B4513,#5C3317)}
-
-/* 地面动画 */
-.ground-scroll{animation:groundMove 4s linear infinite}
+.ground{position:absolute;bottom:0;width:200%;height:15%;background:linear-gradient(180deg,#E86A17,#D2691E,#8B4513);border-top:4px solid #5C3317;animation:groundMove 3s linear infinite}
 @keyframes groundMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-/* 草地装饰 */
-.grass{position:absolute;bottom:40%;font-size:20px;z-index:11;animation:grassMove 4s linear infinite}
-@keyframes grassMove{from{left:100%}to{left:-50px}}
-
-/* 水管 */
-.pipe{position:absolute;bottom:40%;width:60px;height:80px;z-index:20}
-.pipe-top{position:absolute;top:0;left:-5px;width:70px;height:25px;background:linear-gradient(180deg,#228B22,#006400);border:3px solid #004d00;border-radius:3px}
-.pipe-body{position:absolute;top:25px;left:0;width:60px;height:55px;background:linear-gradient(90deg,#228B22,#32CD32,#228B22);border:3px solid #004d00;border-top:none}
-
-/* ========== 游戏层 ========== */
-#game-layer{position:absolute;inset:0;z-index:50}
-
-/* 马里欧 - 全新像素艺术风格 */
-.mario{position:absolute;bottom:40%;left:100px;width:52px;height:68px;z-index:100;transition:none}
-/* 帽子 - 更大更圆 */
-.mario .hat{position:absolute;top:0;left:6px;width:40px;height:18px;background:#E70012;border-radius:20px 20px 0 0;box-shadow:inset -4px 0 0 rgba(0,0,0,.2),0 2px 0 rgba(0,0,0,.1)}
-.mario .hat::after{content:'';position:absolute;top:14px;left:-6px;width:52px;height:10px;background:#E70012;border-radius:5px;box-shadow:inset -4px 0 0 rgba(0,0,0,.2)}
-/* 脸部 - 更圆润 */
-.mario .face{position:absolute;top:18px;left:10px;width:32px;height:24px;background:#FFCC99;border-radius:0 0 18px 18px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.1)}
-/* 眼睛 - 更大更有神 */
-.mario .eye{position:absolute;top:22px;width:7px;height:9px;background:#000;border-radius:50%}
-.mario .eye.left{left:14px}.mario .eye.right{left:27px}
-.mario .eye::after{content:'';position:absolute;top:1px;right:1px;width:3px;height:3px;background:#fff;border-radius:50%}
-/* 鼻子 - 更突出 */
-.mario .nose{position:absolute;top:28px;left:19px;width:14px;height:12px;background:#FFCC99;border-radius:50%;border:2px solid #E8B89D;z-index:5;box-shadow:inset -2px -2px 0 rgba(0,0,0,.1),0 2px 0 rgba(0,0,0,.1)}
-/* 胡子 - 更浓密像原版 */
-.mario .mustache{position:absolute;top:36px;left:4px;width:44px;height:12px;background:#000;border-radius:0 0 16px 16px}
-.mario .mustache::before{content:'';position:absolute;top:-4px;left:-2px;width:16px;height:10px;background:#000;border-radius:50%}
-.mario .mustache::after{content:'';position:absolute;top:-4px;right:-2px;width:16px;height:10px;background:#000;border-radius:50%}
-/* 身体 - 更壮实 */
-.mario .body{position:absolute;top:44px;left:8px;width:36px;height:22px;background:#E70012;border-radius:6px;box-shadow:inset -3px 0 0 rgba(0,0,0,.2)}
-/* 背带裤 */
-.mario .overall{position:absolute;top:46px;left:12px;width:28px;height:18px;background:#0045AD;border-radius:4px}
-.mario .strap{position:absolute;top:44px;width:6px;height:14px;background:#0045AD;border-radius:2px}
-.mario .strap.left{left:14px}.mario .strap.right{left:32px}
-.mario .button{position:absolute;top:50px;width:7px;height:7px;background:#FFD700;border-radius:50%;box-shadow:inset -1px -1px 0 rgba(0,0,0,.2),0 1px 0 rgba(255,255,255,.5)}
-.mario .button.left{left:16px}.mario .button.right{left:29px}
-/* 手臂 - 更粗 */
-.mario .arm{position:absolute;top:46px;width:14px;height:18px;background:#E70012;border-radius:7px}
-.mario .arm.left{left:-6px;transform:rotate(-30deg)}
-.mario .arm.right{left:44px;transform:rotate(30deg)}
-.mario .glove{position:absolute;top:60px;width:14px;height:12px;background:#fff;border-radius:50%;border:2px solid #ddd;box-shadow:inset -2px -2px 0 rgba(0,0,0,.1)}
-.mario .glove.left{left:-6px}.mario .glove.right{left:44px}
-/* 腿 - 更短更可爱 */
-.mario .leg{position:absolute;top:64px;width:16px;height:14px;background:#0045AD;border-radius:0 0 8px 8px}
-.mario .leg.left{left:12px}.mario .leg.right{left:24px}
-/* 鞋子 - 更大更像原版 */
-.mario .shoe{position:absolute;top:74px;width:22px;height:14px;background:#5C3317;border-radius:0 0 12px 12px;box-shadow:inset -3px 0 0 rgba(0,0,0,.2),0 2px 0 rgba(0,0,0,.2)}
-.mario .shoe.left{left:6px}.mario .shoe.right{left:24px}
-
-/* 马里欧动画状态 */
-.mario.jump{animation:marioJump .6s ease}
-@keyframes marioJump{0%{transform:translateY(0)}40%{transform:translateY(-150px)}100%{transform:translateY(0)}}
-.mario.run .leg.left{animation:runLeg .3s infinite}
-.mario.run .leg.right{animation:runLeg .3s infinite .15s}
-@keyframes runLeg{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+/* ========== 马里欧 - 使用emoji更可爱 ========== */
+.mario{position:absolute;bottom:15%;left:15%;font-size:48px;z-index:100;transition:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.3))}
+.mario.jump{animation:marioJump .5s ease}
+@keyframes marioJump{0%,100%{transform:translateY(0)}50%{transform:translateY(-120px)}}
+.mario.big{font-size:56px}
 .mario.star{animation:starFlash .2s infinite}
-@keyframes starFlash{0%,100%{opacity:1;filter:brightness(1)}50%{opacity:.8;filter:brightness(1.5) hue-rotate(30deg)}}
+@keyframes starFlash{0%,100%{filter:brightness(1) hue-rotate(0)}50%{filter:brightness(1.5) hue-rotate(60deg)}}
 
-/* 大马里欧 */
-.mario.big{width:60px;height:80px}
-.mario.big .hat{left:5px;width:50px;height:20px;border-radius:12px 12px 0 0}
-.mario.big .hat::after{top:16px;left:-5px;width:60px;height:10px}
-.mario.big .face{left:10px;width:40px;height:28px;border-radius:0 0 20px 20px}
-.mario.big .eye{top:22px;width:7px;height:9px}
-.mario.big .eye.left{left:18px}.mario.big .eye.right{left:32px}
-.mario.big .nose{top:28px;left:22px;width:14px;height:12px}
-.mario.big .mustache{top:36px;left:8px;width:44px;height:12px}
-.mario.big .mustache::before{top:-4px;left:-3px;width:14px;height:10px}
-.mario.big .mustache::after{top:-4px;right:-3px;width:14px;height:10px}
-.mario.big .body{left:6px;width:48px;height:26px}
-.mario.big .overall{left:10px;width:40px;height:20px}
-.mario.big .strap{top:40px;height:14px}
-.mario.big .strap.left{left:14px}.mario.big .strap.right{left:41px}
-.mario.big .button{top:48px;width:7px;height:7px}
-.mario.big .button.left{left:16px}.mario.big .button.right{left:35px}
-.mario.big .arm{top:44px;width:14px;height:20px}
-.mario.big .arm.left{left:-6px}.mario.big .arm.right{left:52px}
-.mario.big .glove{top:60px;width:14px;height:12px}
-.mario.big .glove.left{left:-6px}.mario.big .glove.right{left:52px}
-.mario.big .leg{top:66px;width:16px;height:14px}
-.mario.big .leg.left{left:12px}.mario.big .leg.right{left:32px}
-.mario.big .shoe{top:76px;width:20px;height:12px}
-.mario.big .shoe.left{left:8px}.mario.big .shoe.right{left:32px}
+/* ========== 砖块 ========== */
+.brick{position:absolute;width:45px;height:45px;display:flex;align-items:center;justify-content:center;font-size:24px;border-radius:4px;z-index:50;box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),inset 2px 2px 0 rgba(255,255,255,.3)}
+.brick.question{background:linear-gradient(135deg,#FFD700,#FFA500);border:2px solid #B8860B;animation:brickFloat 2s ease infinite}
+.brick.item{background:linear-gradient(135deg,#90EE90,#228B22);border:2px solid #006400}
+@keyframes brickFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.brick.hit{transform:scale(.9);opacity:.5}
 
-/* ========== 砖块系统 ========== */
-.brick{position:absolute;width:50px;height:50px;z-index:50;display:flex;align-items:center;justify-content:center;transition:transform .1s}
-.brick.hit{transform:translateY(-10px)}
-/* 砖块位置 - 错落有致 */
-.brick-row-1{bottom:55%}
-.brick-row-2{bottom:70%}
-.brick-row-3{bottom:85%}
-
-/* 普通砖块 */
-.brick.normal{background:linear-gradient(135deg,#B85C38,#8B4513);border:3px solid #5C3317;border-radius:3px;box-shadow:inset -3px -3px 0 rgba(0,0,0,.2),inset 3px 3px 0 rgba(255,255,255,.1)}
-.brick.normal::before{content:'';position:absolute;inset:5px;border:2px solid rgba(0,0,0,.2);border-radius:2px}
-
-/* 问号砖块 */
-.brick.question{background:linear-gradient(135deg,#FFD700,#FFA500);border:3px solid #B8860B;border-radius:3px;box-shadow:inset -3px -3px 0 rgba(0,0,0,.2),inset 3px 3px 0 rgba(255,255,255,.3);animation:brickFloat 2s ease infinite}
-@keyframes brickFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-.brick.question .q{color:#B8860B;font-size:28px;font-weight:bold;text-shadow:1px 1px 0 rgba(255,255,255,.5);animation:qFlash .5s infinite}
-@keyframes qFlash{0%,100%{opacity:1}50%{opacity:.7}}
-
-/* 道具砖块 */
-.brick.item-brick{background:linear-gradient(135deg,#90EE90,#228B22);border:3px solid #006400;border-radius:3px;box-shadow:inset -3px -3px 0 rgba(0,0,0,.2),inset 3px 3px 0 rgba(255,255,255,.2)}
-.brick.item-brick .q{color:#006400;font-size:24px}
-
-/* 破碎砖块 */
-.brick.broken{background:#666;border-color:#444;opacity:.5;transform:scale(.9)}
-.brick.broken .q{display:none}
-
-/* ========== 道具 ========== */
-.item{position:absolute;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:32px;z-index:60;animation:itemPop .6s ease}
-@keyframes itemPop{0%{transform:translateY(0) scale(.5)}50%{transform:translateY(-70px) scale(1.1)}100%{transform:translateY(0) scale(1)}}
-
-/* 金币 */
-.coin{position:absolute;font-size:28px;z-index:60;animation:coinSpin .8s ease forwards}
-@keyframes coinSpin{0%{transform:translateY(0) rotateY(0) scale(1)}30%{transform:translateY(-100px) rotateY(180deg) scale(1.2)}100%{transform:translateY(-50px) rotateY(360deg) scale(0);opacity:0}}
-
-/* 火球 */
-.fireball{position:absolute;width:22px;height:22px;background:radial-gradient(circle at 30% 30%,#FFD700,#FF4500);border-radius:50%;z-index:90;box-shadow:0 0 10px #FF4500,0 0 20px rgba(255,69,0,.5);animation:fireMove 1s linear forwards}
-.fireball::after{content:'';position:absolute;inset:-4px;background:radial-gradient(circle,rgba(255,100,0,.3),transparent 70%);border-radius:50%}
-@keyframes fireMove{to{transform:translateX(350px)}}
+/* 砖块高度 */
+.brick-h1{bottom:35%}
+.brick-h2{bottom:50%}
+.brick-h3{bottom:65%}
 
 /* ========== 怪物 ========== */
-.enemy{position:absolute;bottom:40%;width:38px;height:38px;z-index:80}
-.enemy .goomba-body{position:absolute;bottom:0;width:38px;height:28px;background:linear-gradient(180deg,#8B4513,#5C3317);border-radius:17px 17px 6px 6px;box-shadow:inset -3px 0 0 rgba(0,0,0,.2)}
-.enemy .goomba-face{position:absolute;bottom:10px;left:9px;width:22px;height:14px;background:#FFE4B5;border-radius:11px}
-.enemy .goomba-eye{position:absolute;bottom:16px;width:6px;height:6px;background:#000;border-radius:50%}
-.enemy .goomba-eye.left{left:11px}.enemy .goomba-eye.right{left:24px}
-.enemy .goomba-brow{position:absolute;bottom:21px;width:9px;height:3px;background:#000;border-radius:2px}
-.enemy .goomba-brow.left{left:9px;transform:rotate(25deg)}.enemy .goomba-brow.right{left:23px;transform:rotate(-25deg)}
-.enemy.flat{transform:scaleY(.3);opacity:.6;transition:transform .3s}
+.enemy{position:absolute;bottom:15%;font-size:32px;z-index:80}
+.enemy.flat{transform:scaleY(.3);opacity:.5;transition:transform .3s}
 
-/* ========== 粒子效果 ========== */
-.particle{position:absolute;pointer-events:none;z-index:200}
-.particle.star{animation:particleFloat 1s ease forwards}
-@keyframes particleFloat{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-80px) scale(0);opacity:0}}
+/* ========== 道具 ========== */
+.item{position:absolute;font-size:30px;z-index:60;animation:itemPop .5s ease}
+@keyframes itemPop{0%{transform:translateY(0) scale(.5)}50%{transform:translateY(-60px) scale(1.1)}100%{transform:translateY(0) scale(1)}}
 
-/* ========== 单词弹窗 ========== */
-.word-popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,#fff,#FFF8DC);border:5px solid #E86A17;border-radius:24px;padding:35px;text-align:center;z-index:300;box-shadow:0 20px 60px rgba(0,0,0,.4),inset 0 -5px 0 rgba(0,0,0,.1);transition:transform .4s cubic-bezier(.68,-.55,.265,1.55);min-width:380px}
-.word-popup.show{transform:translate(-50%,-50%) scale(1)}
-.word-popup h2{color:#E86A17;font-size:28px;margin-bottom:15px;text-shadow:1px 1px 0 rgba(0,0,0,.1)}
-.word-popup .word-en{font-size:48px;font-weight:bold;color:#333;margin:15px 0;text-shadow:2px 2px 0 rgba(0,0,0,.1)}
-.word-popup .word-pron{color:#888;font-size:20px;margin-bottom:10px;font-style:italic}
-.word-popup .choices{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:25px 0}
-.word-popup .choice{padding:18px;font-size:24px;border:3px solid #ddd;border-radius:14px;background:linear-gradient(135deg,#f9f9f9,#fff);cursor:pointer;transition:all .2s;box-shadow:0 3px 10px rgba(0,0,0,.1)}
-.word-popup .choice:hover{background:linear-gradient(135deg,#FFE4B5,#FFF8DC);border-color:#E86A17;transform:scale(1.05) translateY(-2px);box-shadow:0 5px 20px rgba(232,106,23,.3)}
-.word-popup .choice.right{background:linear-gradient(135deg,#90EE90,#98FB98) !important;border-color:#228B22 !important;transform:scale(1.05)}
-.word-popup .choice.wrong{background:linear-gradient(135deg,#FFB6C1,#FFC0CB) !important;border-color:#DC143C !important;animation:shake .4s}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
-.word-popup .feedback{font-size:24px;margin:15px 0;height:35px;font-weight:bold}
+/* ========== 金币 ========== */
+.coin{position:absolute;font-size:24px;z-index:60;animation:coinSpin .8s ease forwards}
+@keyframes coinSpin{0%{transform:translateY(0) scale(1)}50%{transform:translateY(-80px) scale(1.2)}100%{transform:translateY(-20px) scale(0);opacity:0}}
+
+/* ========== 火球 ========== */
+.fireball{position:absolute;font-size:20px;z-index:90;animation:fireMove .8s linear forwards}
+@keyframes fireMove{to{transform:translateX(300px)}}
 
 /* ========== HUD ========== */
-#hud{position:absolute;top:15px;left:15px;right:15px;display:flex;justify-content:space-between;z-index:200;flex-wrap:wrap;gap:8px}
-#hud div{background:linear-gradient(135deg,rgba(0,0,0,.7),rgba(0,0,0,.5));color:#fff;padding:10px 18px;border-radius:25px;font-size:16px;font-weight:bold;border:2px solid rgba(255,255,255,.2);box-shadow:0 4px 15px rgba(0,0,0,.3)}
+#hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:200;flex-wrap:wrap;gap:5px}
+#hud div{background:rgba(0,0,0,.6);color:#fff;padding:8px 12px;border-radius:20px;font-size:14px;font-weight:bold}
+
+/* ========== 单词弹窗 ========== */
+.word-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#fff;border:4px solid #E86A17;border-radius:20px;padding:25px;text-align:center;z-index:300;box-shadow:0 10px 40px rgba(0,0,0,.4);transition:transform .3s;min-width:320px;max-width:90vw}
+.word-popup.show{transform:translate(-50%,-50%) scale(1)}
+.word-popup h2{color:#E86A17;font-size:22px;margin-bottom:10px}
+.word-popup .word-en{font-size:36px;font-weight:bold;color:#333;margin:10px 0}
+.word-popup .word-pron{color:#888;font-size:16px}
+.word-popup .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
+.word-popup .choice{padding:14px;font-size:18px;border:2px solid #ddd;border-radius:10px;background:#f9f9f9;cursor:pointer;transition:all .2s}
+.word-popup .choice:hover{background:#FFE4B5;border-color:#E86A17}
+.word-popup .choice.right{background:#90EE90 !important;border-color:#228B22 !important}
+.word-popup .choice.wrong{background:#FFB6C1 !important;border-color:#DC143C !important}
+.word-popup .feedback{font-size:18px;margin:10px 0;height:28px}
 
 /* ========== 屏幕 ========== */
-.screen{position:absolute;inset:0;background:linear-gradient(180deg,#5C94FC 50%,#87CEEB 55%,#E86A17 55%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:400;color:#fff;text-align:center;padding:20px}
+.screen{position:fixed;inset:0;background:linear-gradient(180deg,#5C94FC 50%,#87CEEB 55%,#E86A17 55%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:400;color:#fff;text-align:center;padding:20px;overflow-y:auto}
 .screen.hide{display:none}
-.screen h1{font-size:46px;text-shadow:3px 3px 0 #E86A17,-1px -1px 0 #fff;margin-bottom:20px}
-.screen p{font-size:20px;margin-bottom:20px;max-width:480px;line-height:1.8}
-.screen .big{font-size:120px;margin:20px 0;animation:bounce 1.2s ease infinite;filter:drop-shadow(0 10px 20px rgba(0,0,0,.3))}
-@keyframes bounce{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-25px) rotate(5deg)}}
-.btn{padding:18px 55px;font-size:26px;border:none;border-radius:50px;background:linear-gradient(135deg,#E86A17,#FF6B35);color:#fff;cursor:pointer;margin:12px;box-shadow:0 8px 25px rgba(232,106,23,.4),inset 0 -3px 0 rgba(0,0,0,.2);transition:all .2s;font-weight:bold}
-.btn:hover{transform:scale(1.08) translateY(-2px);box-shadow:0 12px 35px rgba(232,106,23,.5)}
-.btn:active{transform:scale(.95)}
-.story{background:rgba(0,0,0,.5);padding:25px;border-radius:20px;margin:15px;max-width:480px;border:2px solid rgba(255,255,255,.2);backdrop-filter:blur(5px)}
+.screen h1{font-size:32px;text-shadow:2px 2px 0 #E86A17;margin-bottom:15px}
+.screen p{font-size:16px;margin-bottom:15px;max-width:400px;line-height:1.6}
+.screen .big{font-size:80px;margin:15px 0;animation:bounce 1s ease infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
+.btn{padding:15px 40px;font-size:22px;border:none;border-radius:30px;background:linear-gradient(135deg,#E86A17,#FF6B35);color:#fff;cursor:pointer;margin:8px;box-shadow:0 5px 20px rgba(232,106,23,.4);transition:all .2s;font-weight:bold}
+.btn:hover{transform:scale(1.05)}
+.story{background:rgba(0,0,0,.5);padding:20px;border-radius:15px;margin:10px;max-width:400px}
 
 /* ========== 控制按钮 ========== */
-.controls{position:fixed;bottom:25px;right:25px;z-index:500;display:flex;gap:12px}
-.ctrl-btn{width:65px;height:65px;background:linear-gradient(135deg,rgba(255,255,255,.3),rgba(255,255,255,.1));border:3px solid rgba(255,255,255,.6);border-radius:50%;font-size:28px;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(10px);box-shadow:0 6px 20px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.2);transition:all .15s}
-.ctrl-btn:hover{background:linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.2))}
-.ctrl-btn:active{background:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.3));transform:scale(0.9)}
-.ctrl-btn.fire-btn{background:linear-gradient(135deg,rgba(255,69,0,.6),rgba(255,140,0,.4));border-color:#FF4500}
+.controls{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);z-index:500;display:flex;gap:10px}
+.ctrl-btn{width:55px;height:55px;background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.6);border-radius:50%;font-size:24px;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(10px)}
+.ctrl-btn:active{background:rgba(255,255,255,.5);transform:scale(0.9)}
+.ctrl-btn.fire-btn{background:rgba(255,69,0,.5);border-color:#FF4500}
 
 /* ========== 状态提示 ========== */
-.status-msg{position:absolute;top:90px;left:50%;transform:translateX(-50%);font-size:26px;font-weight:bold;color:#FFD700;text-shadow:2px 2px 0 #E86A17,-1px -1px 0 #fff;z-index:200;animation:statusPop 2.5s forwards;white-space:nowrap}
-@keyframes statusPop{0%{transform:translateX(-50%) scale(0);opacity:0}15%{transform:translateX(-50%) scale(1.3);opacity:1}80%{transform:translateX(-50%) scale(1);opacity:1}100%{transform:translateX(-50%) scale(1);opacity:0}}
+.status-msg{position:fixed;top:80px;left:50%;transform:translateX(-50%);font-size:20px;font-weight:bold;color:#FFD700;text-shadow:2px 2px 0 #E86A17;z-index:200;animation:statusPop 2s forwards}
+@keyframes statusPop{0%{transform:translateX(-50%) scale(0)}20%{transform:translateX(-50%) scale(1.2)}80%{transform:translateX(-50%) scale(1);opacity:1}100%{transform:translateX(-50%) scale(1);opacity:0}}
 
-/* ========== 关卡提示 ========== */
-.level-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:40px;font-weight:bold;color:#fff;text-shadow:3px 3px 0 #E86A17,-1px -1px 0 rgba(0,0,0,.5);z-index:250;animation:hintPop 2.5s forwards;text-align:center;white-space:nowrap}
-@keyframes hintPop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}20%{transform:translate(-50%,-50%) scale(1.15);opacity:1}70%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
-
-/* ========== 连击显示 ========== */
-.combo-display{position:absolute;top:140px;left:50%;transform:translateX(-50%);font-size:32px;font-weight:bold;color:#FF4500;text-shadow:2px 2px 0 #FFD700;z-index:200;animation:comboPop 1.5s forwards}
+/* ========== 连击 ========== */
+.combo-display{position:fixed;top:120px;left:50%;transform:translateX(-50%);font-size:24px;font-weight:bold;color:#FF4500;z-index:200;animation:comboPop 1.5s forwards}
 @keyframes comboPop{0%{transform:translateX(-50%) scale(0)}20%{transform:translateX(-50%) scale(1.3)}80%{transform:translateX(-50%) scale(1);opacity:1}100%{transform:translateX(-50%) scale(1);opacity:0}}
 </style>
 </head>
 <body>
 <div id="game">
 
-<!-- ========== 背景层 ========== -->
-<div id="bg-layer">
-  <div class="sky"></div>
+<div class="sky">
   <div class="sun"></div>
-  
-  <!-- 云朵 -->
   <div class="cloud cloud-1">☁️</div>
   <div class="cloud cloud-2">☁️</div>
-  <div class="cloud cloud-3">☁️</div>
-  
-  <!-- 远山 -->
-  <div class="mountains">
-    <div class="mountain"></div>
-    <div class="mountain"></div>
-    <div class="mountain"></div>
-    <div class="mountain"></div>
-  </div>
-  
-  <!-- 地面 -->
-  <div class="ground-layer ground-scroll">
-    <div class="ground-top"></div>
-    <div class="ground-body"></div>
-  </div>
-  
-  <!-- 草地装饰 -->
-  <div class="grass" style="animation-delay:0s">🌱</div>
-  <div class="grass" style="animation-delay:1s;font-size:16px">🌿</div>
-  <div class="grass" style="animation-delay:2s;font-size:18px">🍀</div>
 </div>
 
-<!-- ========== HUD ========== -->
+<div class="ground"></div>
+
 <div id="hud">
-  <div>🍄 超级马里欧单词冒险</div>
+  <div>🍄 单词冒险</div>
   <div>🪙 <span id="coins">0</span></div>
   <div>❤️ <span id="lives">3</span></div>
   <div>⭐ <span id="score">0</span></div>
 </div>
 
-<!-- ========== 游戏层 ========== -->
-<div id="game-layer">
-  
-  <!-- 马里欧 -->
-  <div id="mario" class="mario">
-    <div class="hat"></div>
-    <div class="face"></div>
-    <div class="eye left"></div>
-    <div class="eye right"></div>
-    <div class="nose"></div>
-    <div class="mustache"></div>
-    <div class="body"></div>
-    <div class="overall"></div>
-    <div class="strap left"></div>
-    <div class="strap right"></div>
-    <div class="button left"></div>
-    <div class="button right"></div>
-    <div class="arm left"></div>
-    <div class="arm right"></div>
-    <div class="glove left"></div>
-    <div class="glove right"></div>
-    <div class="leg left"></div>
-    <div class="leg right"></div>
-    <div class="shoe left"></div>
-    <div class="shoe right"></div>
-  </div>
-  
-  <!-- 砖块容器 -->
-  <div id="bricks"></div>
-  
-  <!-- 怪物容器 -->
-  <div id="enemies"></div>
-  
-  <!-- 道具容器 -->
-  <div id="items"></div>
-  
-</div>
+<div id="mario" class="mario">🧑‍🔧</div>
 
-<!-- ========== 单词弹窗 ========== -->
+<div id="bricks"></div>
+<div id="enemies"></div>
+<div id="items"></div>
+
 <div class="word-popup" id="word-popup">
-  <h2>🧱 顶到了砖块！</h2>
+  <h2>🧱 顶到了单词砖！</h2>
   <div class="word-pron" id="popup-pron"></div>
   <div class="word-en" id="popup-word"></div>
-  <div style="color:#666;margin:12px 0;font-size:18px">选择正确的中文意思才能继续冒险！</div>
+  <div style="color:#666;margin:10px 0;font-size:14px">选择正确的中文意思</div>
   <div class="choices" id="popup-choices"></div>
   <div class="feedback" id="popup-feedback"></div>
 </div>
 
-<!-- ========== 开始画面 ========== -->
 <div class="screen" id="start-screen">
   <h1>🍄 超级马里欧单词冒险</h1>
   <div class="big">🏃</div>
   <div class="story">
     <p>👸 公主被库巴抓走了！</p>
     <p>🏃 马里欧会自动向前跑</p>
-    <p>⬆️ 按上键或点击跳跃（长按跳更高）</p>
-    <p>⬅️➡️ 左右键移动选择砖块</p>
+    <p>⬆️ 按上键或点击跳跃</p>
     <p>🧱 遇到单词砖要答对才能过</p>
     <p>🍄 顶道具砖获得超能力！</p>
   </div>
   <button class="btn" onclick="startGame()">开始冒险！</button>
 </div>
 
-<!-- ========== 胜利画面 ========== -->
 <div class="screen hide" id="win-screen">
   <h1>🎉 救出公主了！</h1>
   <div class="big">👸💕</div>
   <div class="story">
-    <p>马里欧成功救出了公主！</p>
     <p>🪙 金币：<span id="win-coins">0</span></p>
     <p>⭐ 得分：<span id="win-score">0</span></p>
   </div>
   <button class="btn" onclick="startGame()">再玩一次</button>
 </div>
 
-<!-- ========== 失败画面 ========== -->
 <div class="screen hide" id="fail-screen">
   <h1>😢 游戏结束</h1>
   <div class="big">🐢</div>
   <div class="story">
-    <p>马里欧失败了，但不要放弃！</p>
     <p>⭐ 得分：<span id="fail-score">0</span></p>
   </div>
   <button class="btn" onclick="startGame()">重新挑战</button>
 </div>
 
-<!-- ========== 控制按钮 ========== -->
 <div class="controls">
   <div class="ctrl-btn" onclick="moveLeft()">⬅️</div>
   <div class="ctrl-btn" onclick="jump()">⬆️</div>
@@ -373,108 +178,55 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden
 </div>
 
 <script>
-// ========== 音效系统 ==========
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-let audioCtx = null;
-function getAudio(){if(!audioCtx)audioCtx=new AudioContext();return audioCtx}
-function playSound(freq,dur,type='square',vol=0.1){
-  try{const ctx=getAudio();const o=ctx.createOscillator();const g=ctx.createGain();o.type=type;o.frequency.value=freq;g.gain.value=vol;g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+dur)}catch(e){}
+// ========== 音效 ==========
+const AudioContext=window.AudioContext||window.webkitAudioContext;
+let audioCtx=null;
+function sfx(freq,dur,type='square',vol=0.1){
+  try{const ctx=audioCtx||(audioCtx=new AudioContext());const o=ctx.createOscillator();const g=ctx.createGain();o.type=type;o.frequency.value=freq;g.gain.value=vol;g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+dur)}catch(e){}
 }
-function sfxJump(){playSound(300,0.15,'square',0.08);playSound(450,0.15,'square',0.06)}
-function sfxCoin(){playSound(900,0.1,'sine',0.1);setTimeout(()=>playSound(1200,0.1,'sine',0.1),80)}
-function sfxHit(){playSound(150,0.1,'square',0.1);playSound(100,0.15,'square',0.1)}
-function sfxCorrect(){playSound(523,0.1,'sine',0.12);setTimeout(()=>playSound(659,0.1,'sine',0.12),100);setTimeout(()=>playSound(784,0.2,'sine',0.15),200)}
-function sfxWrong(){playSound(200,0.2,'sawtooth',0.1);setTimeout(()=>playSound(150,0.25,'sawtooth',0.1),150)}
-function sfxPowerUp(){[300,400,500,600,800].forEach((f,i)=>setTimeout(()=>playSound(f,0.15,'sine',0.12),i*100))}
-function sfxFire(){playSound(800,0.1,'sawtooth',0.1);setTimeout(()=>playSound(600,0.15,'sawtooth',0.08),50)}
-function sfxBrickHit(){playSound(400,0.08,'square',0.1);playSound(300,0.1,'square',0.08)}
+function sfxJump(){sfx(300,.1);sfx(450,.1)}
+function sfxCoin(){sfx(900,.1,'sine');setTimeout(()=>sfx(1200,.1,'sine'),80)}
+function sfxCorrect(){sfx(523,.1,'sine');setTimeout(()=>sfx(659,.1,'sine'),100);setTimeout(()=>sfx(784,.2,'sine'),200)}
+function sfxWrong(){sfx(200,.2,'sawtooth');setTimeout(()=>sfx(150,.25,'sawtooth'),150)}
+function sfxPowerUp(){[300,400,500,600,800].forEach((f,i)=>setTimeout(()=>sfx(f,.15,'sine'),i*100))}
 
 // ========== 单词库 ==========
-const WORDS_EASY = [
+const WORDS=[
   {en:'red',cn:'红色',pron:'/red/'},{en:'blue',cn:'蓝色',pron:'/bluː/'},
   {en:'cat',cn:'猫',pron:'/kæt/'},{en:'dog',cn:'狗',pron:'/dɒɡ/'},
-  {en:'one',cn:'一',pron:'/wʌn/'},{en:'two',cn:'二',pron:'/tuː/'}
-];
-const WORDS_MEDIUM = [
+  {en:'one',cn:'一',pron:'/wʌn/'},{en:'two',cn:'二',pron:'/tuː/'},
   {en:'green',cn:'绿色',pron:'/ɡriːn/'},{en:'yellow',cn:'黄色',pron:'/ˈjel.əʊ/'},
   {en:'bird',cn:'鸟',pron:'/bɜːd/'},{en:'fish',cn:'鱼',pron:'/fɪʃ/'},
-  {en:'three',cn:'三',pron:'/θriː/'},{en:'apple',cn:'苹果',pron:'/ˈæp.əl/'}
+  {en:'apple',cn:'苹果',pron:'/ˈæp.əl/'},{en:'banana',cn:'香蕉',pron:'/bəˈnɑː.nə/'},
+  {en:'orange',cn:'橙子',pron:'/ˈɒr.ɪndʒ/'},{en:'elephant',cn:'大象',pron:'/ˈel.ɪ.fənt/'}
 ];
-const WORDS_HARD = [
-  {en:'banana',cn:'香蕉',pron:'/bəˈnɑː.nə/'},{en:'orange',cn:'橙子',pron:'/ˈɒr.ɪndʒ/'},
-  {en:'elephant',cn:'大象',pron:'/ˈel.ɪ.fənt/'},{en:'giraffe',cn:'长颈鹿',pron:'/dʒɪˈrɑːf/'},
-  {en:'beautiful',cn:'美丽的',pron:'/ˈbjuː.tɪ.fəl/'},{en:'butterfly',cn:'蝴蝶',pron:'/ˈbʌt.ə.flaɪ/'}
-];
-
-// ========== 物理系统 ==========
-const GRAVITY = 0.6;
-const JUMP_FORCE = -12;
-const MOVE_SPEED = 3;
-const FRICTION = 0.85;
-const ACCELERATION = 0.5;
 
 // ========== 游戏状态 ==========
 let coins=0,score=0,lives=3;
 let isBig=false,hasFire=false,isStar=false;
 let gameActive=false,gamePaused=false;
-let gameLoop=null,spawnTimer=null;
-let enemies=[],bricks=[],items=[];
-let distance=0,wordBricksHit=0;
-let currentLevel=1;
-let combo=0,maxCombo=0;
-
-let marioX=100,marioY=0;
-let velocityX=0,velocityY=0;
-let isJumping=false,isOnGround=true;
-let jumpTimer=0,maxJumpTime=15;
+let marioX=0,marioY=0;
+let isJumping=false;
 let keys={left:false,right:false,up:false};
+let enemies=[],bricks=[],items=[];
+let wordBricksHit=0,combo=0;
+let gameLoop=null,spawnTimer=null;
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-
-// ========== 关卡系统 ==========
-function getLevelConfig(level){
-  const configs=[
-    {speed:2,enemyRate:0.3,brickRate:0.4,words:WORDS_EASY,name:'1-1 新手村',hint:'简单单词，熟悉操作'},
-    {speed:2.5,enemyRate:0.5,brickRate:0.5,words:WORDS_EASY.concat(WORDS_MEDIUM.slice(0,3)),name:'1-2 绿草地',hint:'加入中等难度单词'},
-    {speed:3,enemyRate:0.6,brickRate:0.6,words:WORDS_MEDIUM,name:'1-3 地下城',hint:'更多怪物，更快节奏'},
-    {speed:3.5,enemyRate:0.7,brickRate:0.7,words:WORDS_MEDIUM.concat(WORDS_HARD.slice(0,3)),name:'1-4 天空城',hint:'困难单词出现'},
-    {speed:4,enemyRate:0.8,brickRate:0.8,words:WORDS_HARD,name:'🏰 最终城堡',hint:'最难挑战，救出公主!'}
-  ];
-  return configs[Math.min(level-1,configs.length-1)];
-}
-
-function showLevelHint(config){
-  const hint=document.createElement('div');
-  hint.className='level-hint';
-  hint.innerHTML=config.name+'<br><span style="font-size:22px">'+config.hint+'</span>';
-  document.getElementById('game').appendChild(hint);
-  setTimeout(()=>hint.remove(),2500);
-}
-
-function showCombo(){
-  if(combo<2)return;
-  const comboEl=document.createElement('div');
-  comboEl.className='combo-display';
-  comboEl.textContent='🔥 '+combo+'连击！';
-  document.getElementById('game').appendChild(comboEl);
-  setTimeout(()=>comboEl.remove(),1500);
-}
 
 // ========== 游戏控制 ==========
 function startGame(){
   coins=0;score=0;lives=3;isBig=false;hasFire=false;isStar=false;
-  distance=0;wordBricksHit=0;currentLevel=1;combo=0;maxCombo=0;
+  wordBricksHit=0;combo=0;
   enemies=[];bricks=[];items=[];
   gameActive=true;gamePaused=false;
   
-  marioX=100;marioY=0;
-  velocityX=0;velocityY=0;
-  isJumping=false;isOnGround=true;
-  jumpTimer=0;
+  marioX=window.innerWidth*0.15;
+  marioY=0;
+  isJumping=false;
   
   updateHUD();
   updateMario();
-  updateMarioPosition();
   
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hide'));
   document.getElementById('word-popup').classList.remove('show');
@@ -484,13 +236,11 @@ function startGame(){
   document.getElementById('enemies').innerHTML='';
   document.getElementById('items').innerHTML='';
   
-  showLevelHint(getLevelConfig(1));
-  
   if(gameLoop)cancelAnimationFrame(gameLoop);
   gameLoop=requestAnimationFrame(gameUpdate);
   
   if(spawnTimer)clearInterval(spawnTimer);
-  spawnTimer=setInterval(spawnThings,2000);
+  spawnTimer=setInterval(spawnThings,2500);
 }
 
 function gameUpdate(){
@@ -499,51 +249,57 @@ function gameUpdate(){
     return;
   }
   
-  updatePhysics();
+  // 水平移动
+  if(keys.left){marioX-=4}
+  else if(keys.right){marioX+=4}
   
-  distance+=getLevelConfig(currentLevel).speed;
+  const maxX=window.innerWidth-60;
+  if(marioX<20)marioX=20;
+  if(marioX>maxX)marioX=maxX;
   
-  if(wordBricksHit>=currentLevel*3&&currentLevel<5){
-    currentLevel++;
-    const config=getLevelConfig(currentLevel);
-    showLevelHint(config);
-  }
+  // 更新马里欧位置
+  const mario=document.getElementById('mario');
+  mario.style.left=marioX+'px';
+  mario.style.bottom=(15+marioY)+'%';
+  
+  // 移动所有元素
+  const speed=3;
   
   enemies.forEach((e,i)=>{
-    e.x-=getLevelConfig(currentLevel).speed;
+    e.x-=speed;
     e.el.style.left=e.x+'px';
     if(e.x<-50){e.el.remove();enemies.splice(i,1)}
     
-    if(!e.dead&&checkCollision(document.getElementById('mario'),e.el)){
+    if(!e.dead&&checkHit(mario,e.el)){
       if(isStar){killEnemy(e,i)}
-      else if(velocityY>0&&!isOnGround){killEnemy(e,i);score+=100;sfxHit();velocityY=-5}
+      else if(isJumping&&marioY>0){killEnemy(e,i);score+=100;sfxCoin()}
       else{hurtMario()}
     }
   });
   
   bricks.forEach((b,i)=>{
-    b.x-=getLevelConfig(currentLevel).speed;
+    b.x-=speed;
     b.el.style.left=b.x+'px';
     if(b.x<-100){b.el.remove();bricks.splice(i,1)}
     
-    if(!b.hit&&checkCollision(document.getElementById('mario'),b.el)){
+    if(!b.hit&&checkHit(mario,b.el)){
       hitBrick(b,i);
     }
   });
   
   items.forEach((item,i)=>{
-    item.x-=getLevelConfig(currentLevel).speed;
+    item.x-=speed;
     item.el.style.left=item.x+'px';
     if(item.x<-50){item.el.remove();items.splice(i,1)}
     
-    if(checkCollision(document.getElementById('mario'),item.el)){
+    if(checkHit(mario,item.el)){
       getItem(item.type);
       item.el.remove();
       items.splice(i,1);
     }
   });
   
-  if(currentLevel===5&&wordBricksHit>=12){
+  if(wordBricksHit>=10){
     winGame();
     return;
   }
@@ -551,73 +307,20 @@ function gameUpdate(){
   gameLoop=requestAnimationFrame(gameUpdate);
 }
 
-function updatePhysics(){
-  // 水平移动
-  if(keys.left){
-    velocityX-=ACCELERATION;
-    if(velocityX<-MOVE_SPEED)velocityX=-MOVE_SPEED;
-  }else if(keys.right){
-    velocityX+=ACCELERATION;
-    if(velocityX>MOVE_SPEED)velocityX=MOVE_SPEED;
-  }else{
-    velocityX*=FRICTION;
-    if(Math.abs(velocityX)<0.1)velocityX=0;
-  }
-  
-  marioX+=velocityX;
-  
-  const gameW=document.getElementById('game').offsetWidth;
-  if(marioX<20)marioX=20;
-  if(marioX>gameW-60)marioX=gameW-60;
-  
-  // 跳跃系统 - 简化版
-  if(keys.up&&isOnGround){
-    isOnGround=false;
-    marioY=-120; // 直接设置跳跃高度（负数=向上）
-    sfxJump();
-    
-    // 使用CSS动画实现跳跃
-    const mario=document.getElementById('mario');
-    mario.classList.add('jump');
-    
-    // 动画结束后落地
-    setTimeout(()=>{
-      mario.classList.remove('jump');
-      marioY=0;
-      isOnGround=true;
-    },600);
-  }
-  
-  updateMarioPosition();
-}
-
-function updateMarioPosition(){
-  const mario=document.getElementById('mario');
-  mario.style.left=marioX+'px';
-  
-  // 计算底部位置（地面高度 + 跳跃偏移）
-  const groundHeight=window.innerHeight*0.4;
-  mario.style.bottom=(groundHeight+marioY)+'px';
-  
-  // 朝向
-  if(velocityX>0.5)mario.style.transform='scaleX(1)';
-  else if(velocityX<-0.5)mario.style.transform='scaleX(-1)';
-}
-
 function spawnThings(){
   if(!gameActive||gamePaused)return;
   
-  const config=getLevelConfig(currentLevel);
-  const gameW=document.getElementById('game').offsetWidth;
+  const gameW=window.innerWidth;
   
-  if(Math.random()<config.enemyRate){
+  // 生成怪物
+  if(Math.random()<0.4){
     spawnEnemy(gameW+50);
   }
   
-  if(Math.random()<config.brickRate){
-    const isWordBrick=Math.random()<0.6;
-    if(isWordBrick){
-      spawnWordBrick(gameW+50,config.words);
+  // 生成砖块
+  if(Math.random()<0.6){
+    if(Math.random()<0.7){
+      spawnWordBrick(gameW+50);
     }else{
       spawnItemBrick(gameW+50);
     }
@@ -627,53 +330,45 @@ function spawnThings(){
 function spawnEnemy(x){
   const enemy=document.createElement('div');
   enemy.className='enemy';
-  enemy.innerHTML='<div class="goomba-body"></div><div class="goomba-face"></div><div class="goomba-eye left"></div><div class="goomba-eye right"></div><div class="goomba-brow left"></div><div class="goomba-brow right"></div>';
+  enemy.textContent='🍄';
   enemy.style.left=x+'px';
   document.getElementById('enemies').appendChild(enemy);
   enemies.push({el:enemy,x:x,dead:false});
 }
 
-function spawnWordBrick(x,wordPool){
+function spawnWordBrick(x){
   const brick=document.createElement('div');
   brick.className='brick question';
-  brick.innerHTML='<span class="q">?</span>';
+  brick.textContent='❓';
   brick.style.left=x+'px';
   
-  // 随机高度 - 错落有致
-  const rows=['brick-row-1','brick-row-2','brick-row-3'];
-  const row=rows[Math.floor(Math.random()*rows.length)];
-  brick.classList.add(row);
+  // 随机高度
+  const heights=['brick-h1','brick-h2','brick-h3'];
+  brick.classList.add(heights[Math.floor(Math.random()*heights.length)]);
   
   document.getElementById('bricks').appendChild(brick);
   
-  const word=wordPool[Math.floor(Math.random()*wordPool.length)];
+  const word=WORDS[Math.floor(Math.random()*WORDS.length)];
   bricks.push({el:brick,x:x,hit:false,word:word,type:'word'});
 }
 
 function spawnItemBrick(x){
   const brick=document.createElement('div');
-  brick.className='brick item-brick';
-  brick.innerHTML='<span class="q">?</span>';
+  brick.className='brick item';
+  brick.textContent='🎁';
   brick.style.left=x+'px';
-  
-  // 随机高度 - 错落有致
-  const rows=['brick-row-1','brick-row-2'];
-  const row=rows[Math.floor(Math.random()*rows.length)];
-  brick.classList.add(row);
+  brick.classList.add('brick-h1');
   
   document.getElementById('bricks').appendChild(brick);
   
   const items=['mushroom','flower','star'];
-  const item=items[Math.floor(Math.random()*items.length)];
-  bricks.push({el:brick,x:x,hit:false,item:item,type:'item'});
+  bricks.push({el:brick,x:x,hit:false,item:items[Math.floor(Math.random()*items.length)],type:'item'});
 }
 
 function hitBrick(brick,index){
   if(brick.hit)return;
   brick.hit=true;
   brick.el.classList.add('hit');
-  setTimeout(()=>brick.el.classList.add('broken'),200);
-  sfxBrickHit();
   
   if(brick.type==='word'){
     gamePaused=true;
@@ -681,14 +376,14 @@ function hitBrick(brick,index){
   }else if(brick.type==='item'){
     spawnItem(brick.x,brick.item);
     
-    // 金币粒子
+    // 金币
     for(let i=0;i<3;i++){
       setTimeout(()=>{
         const coin=document.createElement('div');
         coin.className='coin';
         coin.textContent='🪙';
         coin.style.left=(brick.x+i*15)+'px';
-        coin.style.bottom='65%';
+        coin.style.bottom='50%';
         document.getElementById('items').appendChild(coin);
         setTimeout(()=>coin.remove(),800);
       },i*100);
@@ -707,6 +402,7 @@ function spawnItem(x,type){
   const icons={mushroom:'🍄',flower:'🌸',star:'⭐'};
   itemEl.textContent=icons[type];
   itemEl.style.left=x+'px';
+  itemEl.style.bottom='35%';
   document.getElementById('items').appendChild(itemEl);
   items.push({el:itemEl,x:x,type:type});
 }
@@ -730,21 +426,12 @@ function showWordPopup(word){
   document.getElementById('popup-word').textContent=word.en;
   document.getElementById('popup-feedback').textContent='';
   
-  const optionCount=currentLevel>=4?4:currentLevel>=2?3:2;
-  const others=WORDS_EASY.concat(WORDS_MEDIUM).concat(WORDS_HARD).filter(w=>w.en!==word.en);
-  const wrongs=shuffle(others).slice(0,optionCount-1).map(w=>w.cn);
+  const others=WORDS.filter(w=>w.en!==word.en);
+  const wrongs=shuffle(others).slice(0,3).map(w=>w.cn);
   const opts=shuffle([word.cn,...wrongs]);
   
   const choicesDiv=document.getElementById('popup-choices');
   choicesDiv.innerHTML='';
-  
-  if(optionCount<=2){
-    choicesDiv.style.gridTemplateColumns='1fr 1fr';
-  }else if(optionCount===3){
-    choicesDiv.style.gridTemplateColumns='1fr 1fr 1fr';
-  }else{
-    choicesDiv.style.gridTemplateColumns='1fr 1fr';
-  }
   
   opts.forEach(opt=>{
     const btn=document.createElement('button');
@@ -764,8 +451,6 @@ function checkAnswer(btn,ans,correct){
   if(ans===correct){
     btn.classList.add('right');
     combo++;
-    if(combo>maxCombo)maxCombo=combo;
-    
     const bonus=combo>1?' (连击x'+combo+')':'';
     fb.innerHTML='<span style="color:green">✅ 答对了！'+bonus+'</span>';
     sfxCorrect();
@@ -775,7 +460,13 @@ function checkAnswer(btn,ans,correct){
     score+=points;
     wordBricksHit++;
     
-    if(combo>=2)showCombo();
+    if(combo>=2){
+      const comboEl=document.createElement('div');
+      comboEl.className='combo-display';
+      comboEl.textContent='🔥 '+combo+'连击！';
+      document.body.appendChild(comboEl);
+      setTimeout(()=>comboEl.remove(),1500);
+    }
   }else{
     btn.classList.add('wrong');
     document.querySelectorAll('.choice').forEach(b=>{if(b.textContent===correct)b.classList.add('right')});
@@ -805,8 +496,7 @@ function hurtMario(){
   if(isStar)return;
   
   if(isBig){
-    isBig=false;
-    hasFire=false;
+    isBig=false;hasFire=false;
     updateMario();
     document.getElementById('fire-btn').classList.add('hide');
     showStatus('变小了！');
@@ -820,17 +510,17 @@ function hurtMario(){
 
 function shootFire(){
   if(!hasFire)return;
-  sfxFire();
   const mario=document.getElementById('mario');
   const fireball=document.createElement('div');
   fireball.className='fireball';
+  fireball.textContent='🔥';
   fireball.style.left=(mario.offsetLeft+40)+'px';
-  fireball.style.bottom=(40+marioY)+'%';
+  fireball.style.bottom=(15+marioY)+'%';
   document.getElementById('game').appendChild(fireball);
   
   const checkFireHit=setInterval(()=>{
     enemies.forEach((e,i)=>{
-      if(!e.dead&&checkCollision(fireball,e.el)){
+      if(!e.dead&&checkHit(fireball,e.el)){
         killEnemy(e,i);
         fireball.remove();
         clearInterval(checkFireHit);
@@ -838,10 +528,10 @@ function shootFire(){
     });
   },50);
   
-  setTimeout(()=>{fireball.remove();clearInterval(checkFireHit)},1000);
+  setTimeout(()=>{fireball.remove();clearInterval(checkFireHit)},800);
 }
 
-function checkCollision(el1,el2){
+function checkHit(el1,el2){
   const r1=el1.getBoundingClientRect();
   const r2=el2.getBoundingClientRect();
   return!(r1.right<r2.left||r1.left>r2.right||r1.bottom<r2.top||r1.top>r2.bottom);
@@ -849,6 +539,7 @@ function checkCollision(el1,el2){
 
 function updateMario(){
   const mario=document.getElementById('mario');
+  mario.textContent=isBig?'👨‍🔧':'🧑‍🔧';
   if(isBig)mario.classList.add('big');
   else mario.classList.remove('big');
 }
@@ -863,14 +554,13 @@ function showStatus(msg){
   const status=document.createElement('div');
   status.className='status-msg';
   status.textContent=msg;
-  document.getElementById('game').appendChild(status);
-  setTimeout(()=>status.remove(),2500);
+  document.body.appendChild(status);
+  setTimeout(()=>status.remove(),2000);
 }
 
 function winGame(){
   gameActive=false;
   clearInterval(spawnTimer);
-  sfxCorrect();
   document.getElementById('win-coins').textContent=coins;
   document.getElementById('win-score').textContent=score;
   document.getElementById('win-screen').classList.remove('hide');
@@ -884,22 +574,50 @@ function loseGame(){
 }
 
 // ========== 控制函数 ==========
-function moveLeft(){keys.left=true;keys.right=false;setTimeout(()=>keys.left=false,100)}
-function moveRight(){keys.right=true;keys.left=false;setTimeout(()=>keys.right=false,100)}
-function jump(){keys.up=true;setTimeout(()=>keys.up=false,200)}
+function moveLeft(){marioX-=30;updateMarioPosition()}
+function moveRight(){marioX+=30;updateMarioPosition()}
+function jump(){
+  if(isJumping)return;
+  isJumping=true;
+  sfxJump();
+  
+  const mario=document.getElementById('mario');
+  mario.classList.add('jump');
+  marioY=10; // 跳跃时的高度百分比
+  
+  setTimeout(()=>{
+    mario.classList.remove('jump');
+    marioY=0;
+    isJumping=false;
+  },500);
+}
+
+function updateMarioPosition(){
+  const mario=document.getElementById('mario');
+  mario.style.left=marioX+'px';
+}
 
 // 键盘控制
 document.addEventListener('keydown',e=>{
-  if(e.code==='ArrowLeft'||e.code==='KeyA'){e.preventDefault();keys.left=true}
-  else if(e.code==='ArrowRight'||e.code==='KeyD'){e.preventDefault();keys.right=true}
-  else if(e.code==='ArrowUp'||e.code==='Space'||e.code==='KeyW'){e.preventDefault();keys.up=true}
+  if(e.code==='ArrowLeft'||e.code==='KeyA'){e.preventDefault();moveLeft()}
+  else if(e.code==='ArrowRight'||e.code==='KeyD'){e.preventDefault();moveRight()}
+  else if(e.code==='ArrowUp'||e.code==='Space'||e.code==='KeyW'){e.preventDefault();jump()}
   else if(e.code==='KeyF'){e.preventDefault();shootFire()}
 });
 
-document.addEventListener('keyup',e=>{
-  if(e.code==='ArrowLeft'||e.code==='KeyA')keys.left=false;
-  else if(e.code==='ArrowRight'||e.code==='KeyD')keys.right=false;
-  else if(e.code==='ArrowUp'||e.code==='Space'||e.code==='KeyW')keys.up=false;
+// 触摸控制
+document.addEventListener('touchstart',e=>{
+  const touch=e.touches[0];
+  const x=touch.clientX;
+  const y=touch.clientY;
+  const w=window.innerWidth;
+  const h=window.innerHeight;
+  
+  if(y>h*0.7){
+    if(x<w*0.3)moveLeft();
+    else if(x>w*0.7)moveRight();
+    else jump();
+  }
 });
 </script>
 </body>
