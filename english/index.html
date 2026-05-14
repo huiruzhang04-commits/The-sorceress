@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>每日英语背诵</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f4f8;color:#1a1a2e;min-height:100vh;padding-bottom:72px}
+#app{max-width:480px;margin:0 auto;min-height:100vh;position:relative}
+.page-header{background:#4361ee;color:white;padding:16px 20px;position:sticky;top:0;z-index:10}
+.page-header h1{font-size:20px;font-weight:600}
+.header-date{font-size:13px;opacity:0.85;margin-top:4px}
+.article-card{background:white;margin:12px 16px;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(67,97,238,0.08)}
+.article-meta{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.category-tag{padding:4px 10px;border-radius:20px;font-size:12px;background:#e7e9ff;color:#4361ee;white-space:nowrap}
+.word-count{font-size:12px;color:#6c757d;white-space:nowrap}
+.article-title{font-size:18px;font-weight:600;color:#1a1a2e;margin-bottom:12px}
+.english-text{font-size:16px;line-height:2;color:#2d3748;margin-bottom:16px}
+.sentence{margin-bottom:8px;padding:8px 12px;background:#f8fafc;border-radius:10px;cursor:pointer;transition:background 0.2s}
+.sentence:hover{background:#e7e9ff}
+.word{display:inline;padding:2px 4px;margin:0 1px;border-radius:6px;cursor:pointer;transition:all 0.15s;color:#4361ee;font-weight:500}
+.word:hover{background:#4361ee;color:white}
+.translation-box{background:#f0f4f8;border-radius:12px;padding:12px 16px;margin-bottom:16px}
+.translation-box h3{font-size:13px;color:#6c757d;margin-bottom:8px}
+.translation-text{font-size:14px;line-height:1.8;color:#495057}
+.vocab-section h3{font-size:13px;color:#6c757d;margin-bottom:10px}
+.vocab-list{display:flex;flex-direction:column;gap:8px}
+.vocab-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f8fafc;border-radius:10px;cursor:pointer}
+.vocab-item:hover{background:#e7e9ff}
+.vocab-word{font-weight:600;color:#4361ee;min-width:80px}
+.vocab-phonetic{color:#6c757d;font-size:13px;min-width:90px}
+.vocab-meaning{color:#495057;font-size:14px}
+.controls-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.control-btn{display:flex;align-items:center;gap:6px;padding:10px 16px;border-radius:12px;border:none;font-size:14px;font-weight:500;cursor:pointer}
+.btn-primary{background:#4361ee;color:white}
+.btn-secondary{background:#e7e9ff;color:#4361ee}
+.speed-toggle{padding:8px 14px;border-radius:10px;border:2px solid #4361ee;background:white;color:#4361ee;font-size:13px;cursor:pointer}
+.speed-toggle.active{background:#4361ee;color:white}
+.recording-section{background:#fff5f5;border-radius:12px;padding:16px;margin-bottom:16px}
+.recording-timer{font-size:32px;font-weight:700;color:#dc3545;text-align:center}
+.recording-status{text-align:center;font-size:13px;color:#6c757d;margin-top:4px}
+.recording-controls{display:flex;justify-content:center;gap:12px;margin-top:12px}
+.rec-indicator{width:12px;height:12px;background:#dc3545;border-radius:50%;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.checkin-section{background:#f0fff4;border-radius:12px;padding:16px;margin-top:12px}
+.checkin-title{font-size:14px;font-weight:600;color:#155724;margin-bottom:12px}
+.difficulty-select{display:flex;gap:8px;margin-bottom:12px}
+.diff-option{flex:1;padding:10px;border-radius:10px;border:2px solid #dee2e6;background:white;text-align:center;font-size:13px;cursor:pointer}
+.diff-option.selected{border-color:#28a745;background:#d4edda;color:#155724}
+.checkin-btn{width:100%;padding:14px;border-radius:12px;border:none;background:#28a745;color:white;font-size:16px;font-weight:600;cursor:pointer}
+.checkin-btn:disabled{background:#6c757d;cursor:not-allowed}
+.checked-in-badge{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:#28a745;color:white;border-radius:12px;font-weight:600}
+.library-header{background:#4361ee;color:white;padding:16px 20px;position:sticky;top:0;z-index:10}
+.library-header h1{font-size:20px;font-weight:600}
+.filter-tabs{display:flex;gap:8px;margin-top:12px}
+.filter-tab{padding:6px 14px;border-radius:20px;border:none;background:rgba(255,255,255,0.2);color:white;font-size:13px;cursor:pointer}
+.filter-tab.active{background:white;color:#4361ee}
+.article-list{padding:12px 16px}
+.article-list-item{display:flex;align-items:center;gap:12px;padding:14px 16px;background:white;border-radius:14px;margin-bottom:10px;cursor:pointer}
+.list-number{width:36px;height:36px;border-radius:10px;background:#e7e9ff;color:#4361ee;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
+.list-info{flex:1;min-width:0}
+.list-title{font-size:15px;font-weight:600;color:#1a1a2e}
+.list-meta{display:flex;gap:8px;margin-top:4px}
+.check-icon{width:28px;height:28px;border-radius:50%;background:#28a745;color:white;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.calendar-header{background:#4361ee;color:white;padding:16px 20px;position:sticky;top:0;z-index:10}
+.calendar-header h1{font-size:20px;font-weight:600}
+.stats-row{display:flex;gap:12px;padding:16px}
+.stat-card{flex:1;background:white;border-radius:14px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(67,97,238,0.08)}
+.stat-value{font-size:28px;font-weight:700;color:#4361ee}
+.stat-label{font-size:12px;color:#6c757d;margin-top:4px}
+.calendar-grid{background:white;margin:0 16px 16px;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(67,97,238,0.08)}
+.calendar-month{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.calendar-month h2{font-size:16px;font-weight:600}
+.month-nav{display:flex;gap:8px}
+.month-nav button{width:32px;height:32px;border-radius:8px;border:none;background:#f0f4f8;color:#4361ee;cursor:pointer}
+.weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px}
+.weekday{text-align:center;font-size:12px;color:#6c757d;padding:8px 0}
+.days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.day-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:14px;cursor:pointer;position:relative}
+.day-cell:hover{background:#f0f4f8}
+.day-cell.other-month{color:#adb5bd}
+.day-cell.today{background:#4361ee;color:white;font-weight:600}
+.day-dot{width:6px;height:6px;border-radius:50%;background:#28a745;position:absolute;bottom:4px}
+.popup{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100}
+.popup.hidden{display:none}
+.popup-content{background:white;border-radius:20px;padding:24px;max-width:320px;text-align:center}
+.popup-word{font-size:24px;font-weight:700;color:#4361ee;margin-bottom:8px}
+.popup-phonetic{font-size:16px;color:#6c757d;margin-bottom:12px}
+.popup-meaning{font-size:16px;color:#2d3748;margin-bottom:20px;padding:12px;background:#f0f4f8;border-radius:12px}
+.popup-close{width:100%;padding:12px;border-radius:12px;border:none;background:#4361ee;color:white;font-size:15px;cursor:pointer}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:12px 24px;border-radius:12px;z-index:200;transition:all 0.3s}
+.toast.hidden{opacity:0;pointer-events:none}
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;padding:8px 0 12px;box-shadow:0 -2px 10px rgba(0,0,0,0.08);z-index:50;max-width:480px;margin:0 auto}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 20px;border:none;background:none;color:#6c757d;font-size:12px;cursor:pointer}
+.nav-btn.active{color:#4361ee}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="main-content"></div>
+  <div id="bottom-nav">
+    <button class="nav-btn active" data-tab="today">今日</button>
+    <button class="nav-btn" data-tab="library">文库</button>
+    <button class="nav-btn" data-tab="calendar">日历</button>
+  </div>
+  <div id="word-popup" class="popup hidden">
+    <div class="popup-content">
+      <div id="popup-word" style="font-size:24px;font-weight:700;color:#4361ee"></div>
+      <div id="popup-phonetic" style="font-size:16px;color:#6c757d;margin:8px 0"></div>
+      <div id="popup-meaning" style="font-size:16px;margin-bottom:16px;padding:12px;background:#f0f4f8;border-radius:12px"></div>
+      <button id="popup-close-btn" style="width:100%;padding:12px;border:none;border-radius:12px;background:#4361ee;color:white;font-size:15px;cursor:pointer">关闭</button>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden"></div>
+</div>
+<script>
+const ARTICLES = [{"id": 1, "title": "Morning Routine", "category": "生活", "words": 42, "text": "I wake up at 6:30 every morning. I brush my teeth, wash my face, and get dressed. Then I have a quick breakfast. I check my phone for messages before leaving home. A good morning routine sets the tone for the whole day.", "translation": "我每天早上六点半起床。我刷牙、洗脸、穿好衣服。然后快速吃完早餐。出门前我会看一下手机消息。一个好的晨间习惯为全天定下基调。", "vocab": [{"w": "routine", "p": "/ruːˈtiːn/", "m": "日常惯例"}, {"w": "tone", "p": "/toʊn/", "m": "基调"}, {"w": "check", "p": "/tʃek/", "m": "查看"}, {"w": "quick", "p": "/kwɪk/", "m": "快速的"}, {"w": "set", "p": "/set/", "m": "设定"}]}, {"id": 2, "title": "Ordering Coffee", "category": "生活", "words": 55, "text": "I walk into a coffee shop. The barista asks what I want. I say, 'A latte with oat milk, please.' She asks if I want it hot or iced. I say hot. I pay with my phone and wait by the counter. They call my name and I pick up my coffee.", "translation": "我走进一家咖啡店。咖啡师问我要什么。我说：一杯燕麦拿铁。她问我要热饮还是冷饮。我说热的。我用手机付了钱，在柜台旁边等。他们叫我的名字，我取走咖啡。", "vocab": [{"w": "barista", "p": "/bəˈriːstə/", "m": "咖啡师"}, {"w": "latte", "p": "/ˈlɑːteɪ/", "m": "拿铁"}, {"w": "oat milk", "p": "/oʊt mɪlk/", "m": "燕麦奶"}, {"w": "counter", "p": "/ˈkaʊntər/", "m": "柜台"}, {"w": "pick up", "p": "/pɪk ʌp/", "m": "取走"}]}, {"id": 3, "title": "Taking the Subway", "category": "生活", "words": 46, "text": "I walk to the subway station. I tap my card at the gate. The train arrives in two minutes. It is crowded during rush hour. I stand near the door and hold the handle. After three stops, I get off and walk to my office.", "translation": "我走到地铁站。在闸机口刷了卡。地铁两分钟后到达。高峰期很拥挤。我站在门边扶着扶手。三站后下车，走向办公室。", "vocab": [{"w": "subway", "p": "/ˈsʌbweɪ/", "m": "地铁"}, {"w": "tap", "p": "/tæp/", "m": "轻敲"}, {"w": "gate", "p": "/ɡeɪt/", "m": "闸机"}, {"w": "crowded", "p": "/ˈkraʊdɪd/", "m": "拥挤的"}, {"w": "handle", "p": "/ˈhændl/", "m": "扶手"}]}, {"id": 4, "title": "Going to the Supermarket", "category": "生活", "words": 52, "text": "I push a cart and walk through the aisles. I pick up vegetables, fruits, milk, and bread. I check the price tag to stay within my budget. At the checkout, the cashier scans everything. I pack my bags and pay by card.", "translation": "我推着购物车走过货架通道。我拿了蔬菜、水果、牛奶和面包。我看了一下价格标签，确保不超预算。结账时收银员扫描了所有商品。我装好袋子，刷卡付款。", "vocab": [{"w": "cart", "p": "/kɑːrt/", "m": "推车"}, {"w": "aisle", "p": "/aɪl/", "m": "过道"}, {"w": "budget", "p": "/ˈbʌdʒɪt/", "m": "预算"}, {"w": "cashier", "p": "/kæˈʃɪr/", "m": "收银员"}, {"w": "scan", "p": "/skæn/", "m": "扫描"}]}, {"id": 5, "title": "Seeing a Doctor", "category": "生活", "words": 51, "text": "I have a headache and a sore throat. I make an appointment at the clinic. The nurse takes my temperature. The doctor asks about my symptoms. He says it is just a cold. He prescribes some medicine and tells me to rest.", "translation": "我头痛，喉咙也痛。我在诊所预约了。护士量了我的体温。医生询问我的症状。他说只是感冒。他开了一些药，让我多休息。", "vocab": [{"w": "sore throat", "p": "/sɔːr θroʊt/", "m": "喉咙痛"}, {"w": "appointment", "p": "/əˈpɔɪntmənt/", "m": "预约"}, {"w": "clinic", "p": "/ˈklɪnɪk/", "m": "诊所"}, {"w": "symptom", "p": "/ˈsɪmptəm/", "m": "症状"}, {"w": "prescribe", "p": "/prɪˈskraɪb/", "m": "开药"}]}, {"id": 6, "title": "Making a Phone Call", "category": "职场", "words": 48, "text": "When making a business call, start with a polite greeting. Say your name and company. State the purpose of your call briefly. Listen carefully and take notes. Confirm next steps before hanging up. End with a thank you.", "translation": "打工作电话时，先礼貌问候。报上你的名字和公司。简要说明来电目的。仔细聆听并做好笔记。挂电话前确认下一步。最后说声谢谢。", "vocab": [{"w": "greeting", "p": "/ˈɡriːtɪŋ/", "m": "问候"}, {"w": "state", "p": "/steɪt/", "m": "陈述"}, {"w": "briefly", "p": "/ˈbriːfli/", "m": "简要地"}, {"w": "confirm", "p": "/kənˈfɜːrm/", "m": "确认"}, {"w": "hang up", "p": "/hæŋ ʌp/", "m": "挂断"}]}, {"id": 7, "title": "Introducing Yourself", "category": "职场", "words": 48, "text": "Hi, my name is Li Ming. I am a marketing specialist with five years of experience. I graduated from Xiamen University. I am good at data analysis and team collaboration. I am excited to join this project.", "translation": "你好，我叫李明。我是一名有五年经验的市场营销专员。我毕业于厦门大学。我擅长数据分析和团队协作。我很高兴加入这个项目。", "vocab": [{"w": "specialist", "p": "/ˈspeʃəlɪst/", "m": "专员"}, {"w": "experience", "p": "/ɪkˈspɪriəns/", "m": "经验"}, {"w": "graduate", "p": "/ˈɡrædʒueɪt/", "m": "毕业"}, {"w": "analysis", "p": "/əˈnæləsɪs/", "m": "分析"}, {"w": "collaboration", "p": "/kəˌlæbəˈreɪʃn/", "m": "协作"}]}, {"id": 8, "title": "Writing an Email", "category": "职场", "words": 55, "text": "Dear Team, I am writing to update you on the project progress. We have completed the first phase and are moving to testing. Please review the attached document and share your feedback by Friday. Let me know if you have any questions. Best regards, Ada", "translation": "亲爱的团队，我写信是为了更新项目进度。我们已经完成了第一阶段，正在进入测试阶段。请查看附件文档，并在周五前反馈意见。如有疑问请告知。此致，Ada", "vocab": [{"w": "update", "p": "/ʌpˈdeɪt/", "m": "更新"}, {"w": "phase", "p": "/feɪz/", "m": "阶段"}, {"w": "review", "p": "/rɪˈvjuː/", "m": "审阅"}, {"w": "feedback", "p": "/ˈfiːdbæk/", "m": "反馈"}, {"w": "regards", "p": "/rɪˈɡɑːrdz/", "m": "致意"}]}, {"id": 9, "title": "Asking for Leave", "category": "职场", "words": 58, "text": "Dear Manager, I would like to request a day off on Friday, May 20th. I have a personal matter to attend to. I have finished all my urgent tasks and arranged coverage with my colleague. I will be back to work on Monday. Thank you for your understanding.", "translation": "尊敬的经理，我想申请5月20日周五请一天假。我有私事需要处理。我已经完成了所有紧急任务，并与同事交接好了工作。我周一将恢复正常上班。谢谢您的理解。", "vocab": [{"w": "request", "p": "/rɪˈkwest/", "m": "请求"}, {"w": "personal", "p": "/ˈpɜːrsənl/", "m": "个人的"}, {"w": "urgent", "p": "/ˈɜːrdʒənt/", "m": "紧急的"}, {"w": "coverage", "p": "/ˈkʌvərɪdʒ/", "m": "交接"}, {"w": "understanding", "p": "/ˌʌndərˈstændɪŋ/", "m": "理解"}]}, {"id": 10, "title": "Meeting in Progress", "category": "职场", "words": 52, "text": "Good morning everyone. Let us start the meeting. First, I will go over last week results. Then we will discuss the new proposal. Please save your questions until after the presentation. We have one hour for this meeting. Let us be efficient.", "translation": "大家早上好。我们开始开会。首先，我回顾一下上周的成果。然后我们将讨论新方案。请在演示结束后再提问。这次会议我们有一小时时间。请大家高效参与。", "vocab": [{"w": "proposal", "p": "/prəˈpoʊzl/", "m": "提案"}, {"w": "presentation", "p": "/ˌpriːzenˈteɪʃn/", "m": "演示"}, {"w": "efficient", "p": "/ɪˈfɪʃnt/", "m": "高效的"}, {"w": "go over", "p": "/ɡoʊ ˈoʊvər/", "m": "回顾"}, {"w": "results", "p": "/rɪˈzʌlts/", "m": "成果"}]}, {"id": 11, "title": "Job Interview", "category": "职场", "words": 55, "text": "Tell me about yourself. I graduated with a degree in business administration. I have worked at two companies, both in the e-commerce industry. I enjoy solving problems and working with data. My goal is to grow as a professional and contribute to a great team.", "translation": "请介绍一下你自己。我毕业于工商管理专业。我在两家公司工作过，都是电商行业。我喜欢解决问题和处理数据。我的目标是成长为一名专业人士，为一支优秀的团队做出贡献。", "vocab": [{"w": "interview", "p": "/ˈɪntərvjuː/", "m": "面试"}, {"w": "degree", "p": "/dɪˈɡriː/", "m": "学位"}, {"w": "e-commerce", "p": "/ˈiː kɑːmɜːrs/", "m": "电子商务"}, {"w": "contribute", "p": "/kənˈtrɪbjuːt/", "m": "贡献"}, {"w": "professional", "p": "/prəˈfeʃənl/", "m": "专业人士"}]}, {"id": 12, "title": "Business Trip", "category": "职场", "words": 47, "text": "I arrive at the airport two hours early. I check in my luggage and get my boarding pass. I go through security and wait at the gate. The flight is on time. I use the time on the plane to prepare for my meeting.", "translation": "我提前两小时到达机场。我托运了行李，拿到了登机牌。经过安检后在登机口等候。航班准时起飞。我利用飞机上的时间为会议做准备。", "vocab": [{"w": "luggage", "p": "/ˈlʌɡɪdʒ/", "m": "行李"}, {"w": "boarding pass", "p": "/ˈbɔːrdɪŋ pæs/", "m": "登机牌"}, {"w": "security", "p": "/sɪˈkjʊrəti/", "m": "安检"}, {"w": "flight", "p": "/flaɪt/", "m": "航班"}, {"w": "on time", "p": "/ɑːn taɪm/", "m": "准时"}]}, {"id": 13, "title": "Working with Colleagues", "category": "职场", "words": 52, "text": "Good teamwork makes the workplace better. Listen to others before you speak. Offer help when someone is struggling. Share credit when things go well. If there is a conflict, talk it out calmly. A good colleague is reliable and respectful.", "translation": "良好的团队合作能让工作环境变得更好。先听别人说完再说。有人遇到困难时主动帮忙。事情顺利时分享功劳。有冲突时冷静沟通。好的同事是可靠且尊重他人的。", "vocab": [{"w": "teamwork", "p": "/ˈtiːmwɜːrk/", "m": "团队合作"}, {"w": "struggle", "p": "/ˈstrʌɡl/", "m": "挣扎"}, {"w": "credit", "p": "/ˈkredɪt/", "m": "功劳"}, {"w": "conflict", "p": "/ˈkɑːnflɪkt/", "m": "冲突"}, {"w": "reliable", "p": "/rɪˈlaɪəbl/", "m": "可靠的"}]}, {"id": 14, "title": "Receiving Feedback", "category": "职场", "words": 45, "text": "Receiving feedback is part of growing. Do not take it personally. Listen to the end before you respond. Ask clarifying questions if needed. Thank the person for their input. Reflect on it and make improvements.", "translation": "接受反馈是成长的一部分。不要把它当成针对个人。听完再回应。如有需要就问清楚。感谢对方的意见。反思并加以改进。", "vocab": [{"w": "feedback", "p": "/ˈfiːdbæk/", "m": "反馈"}, {"w": "personally", "p": "/ˈpɜːrsənəli/", "m": "个人地"}, {"w": "clarifying", "p": "/ˈklærəfaɪɪŋ/", "m": "澄清的"}, {"w": "input", "p": "/ˈɪnpʊt/", "m": "意见"}, {"w": "reflect", "p": "/rɪˈflekt/", "m": "反思"}]}, {"id": 15, "title": "Saying Thank You", "category": "职场", "words": 55, "text": "Dear Mr. Wang, I wanted to express my sincere gratitude for your guidance on the project. Your advice helped me avoid several mistakes. I truly appreciate the time you took to explain everything. Thank you for being such a great mentor.", "translation": "尊敬的王先生，我想对您在这个项目上的指导表达诚挚的感谢。您的建议帮我避免了好几个错误。我非常感激您花时间解释一切。感谢您是一位如此出色的导师。", "vocab": [{"w": "gratitude", "p": "/ˈɡrætɪtuːd/", "m": "感激"}, {"w": "guidance", "p": "/ˈɡaɪdns/", "m": "指导"}, {"w": "advice", "p": "/ədˈvaɪs/", "m": "建议"}, {"w": "appreciate", "p": "/əˈpriːʃieɪt/", "m": "感激"}, {"w": "mentor", "p": "/ˈmentɔːr/", "m": "导师"}]}, {"id": 16, "title": "Giving a Presentation", "category": "职场", "words": 52, "text": "Good afternoon everyone. Today I am going to present our Q2 results. As you can see from this chart, our sales grew by 15 percent. We also reduced costs by 8 percent. I will now walk you through the key drivers behind these numbers.", "translation": "大家下午好。今天我将汇报我们第二季度的业绩。从这张图表可以看出，我们的销售额增长了15%。我们还降低了8%的成本。现在我将带大家了解这些数字背后的关键驱动因素。", "vocab": [{"w": "present", "p": "/prɪˈzent/", "m": "演示"}, {"w": "chart", "p": "/tʃɑːrt/", "m": "图表"}, {"w": "percent", "p": "/pərˈsent/", "m": "百分比"}, {"w": "sales", "p": "/seɪlz/", "m": "销售额"}, {"w": "driver", "p": "/ˈdraɪvər/", "m": "驱动因素"}]}, {"id": 17, "title": "Apologizing", "category": "职场", "words": 52, "text": "I want to sincerely apologize for the misunderstanding yesterday. It was my fault that I did not communicate clearly. I have already fixed the issue and made sure it will not happen again. Please let me know if there is anything else I can do to make it right.", "translation": "我想为昨天的误会真诚道歉。是我没有沟通清楚，这是我的错。我已经解决了问题，并确保不会再次发生。如果有其他我能做的补救措施，请告诉我。", "vocab": [{"w": "apologize", "p": "/əˈpɑːlədʒaɪz/", "m": "道歉"}, {"w": "misunderstanding", "p": "/ˌmɪsʌndərˈstændɪŋ/", "m": "误会"}, {"w": "fault", "p": "/fɔːlt/", "m": "过错"}, {"w": "fix", "p": "/fɪks/", "m": "修复"}, {"w": "communicate", "p": "/kəˈmjuːnɪkeɪt/", "m": "沟通"}]}, {"id": 18, "title": "Online Shopping", "category": "生活", "words": 45, "text": "I found a good deal on a pair of shoes. I added them to my cart and entered my address. I chose free shipping and paid with Alipay. The package arrived in three days. I tried them on and they fit perfectly.", "translation": "我看到一双鞋价格很划算。我加入购物车，输入地址。选了免运费，用支付宝支付。三天后包裹到了。我试穿了一下，非常合脚。", "vocab": [{"w": "deal", "p": "/diːl/", "m": "优惠"}, {"w": "shipping", "p": "/ˈʃɪpɪŋ/", "m": "运费"}, {"w": "package", "p": "/ˈpækɪdʒ/", "m": "包裹"}, {"w": "try on", "p": "/traɪ ɑːn/", "m": "试穿"}, {"w": "fit", "p": "/fɪt/", "m": "合身"}]}, {"id": 19, "title": "At the Restaurant", "category": "生活", "words": 47, "text": "The waiter hands me the menu. I order a set lunch with soup and salad. The food comes in ten minutes. It tastes great. At the end of the meal, I ask for the bill. I leave a small tip.", "translation": "服务员递给我菜单。我点了一份包含汤和沙拉的午餐套餐。十分钟后菜上来了。味道很好。吃完后我要了账单。我留了一点小费。", "vocab": [{"w": "menu", "p": "/ˈmenjuː/", "m": "菜单"}, {"w": "set lunch", "p": "/set lʌntʃ/", "m": "午餐套餐"}, {"w": "bill", "p": "/bɪl/", "m": "账单"}, {"w": "tip", "p": "/tɪp/", "m": "小费"}, {"w": "taste", "p": "/teɪst/", "m": "味道"}]}, {"id": 20, "title": "Weekend Plan", "category": "生活", "words": 52, "text": "This weekend, I plan to visit the new art museum. My friend recommended it. After that, we will grab lunch at a nearby noodle shop. In the afternoon, I need to do some grocery shopping. I want to try a new recipe on Sunday.", "translation": "这个周末，我打算去新开的艺术博物馆。朋友推荐的。之后我们在附近的面馆吃午饭。下午我需要去买点菜。我打算周日试着做一道新菜。", "vocab": [{"w": "museum", "p": "/mjuːˈziːəm/", "m": "博物馆"}, {"w": "recommend", "p": "/ˌrekəˈmend/", "m": "推荐"}, {"w": "noodle", "p": "/ˈnuːdl/", "m": "面条"}, {"w": "grocery", "p": "/ˈɡroʊsəri/", "m": "杂货"}, {"w": "recipe", "p": "/ˈresəpi/", "m": "食谱"}]}, {"id": 21, "title": "Stay Hungry", "category": "演讲", "words": 68, "text": "When I was 17, I read a quote that went something like: If you live each day as if it was your last, someday you will most certainly be right. It made an impression on me. Since then, for the past 33 years, I have looked in the mirror every morning and asked myself: If today were the last day of my life, would I want to do what I am about to do today?", "translation": "17岁时我读到一句话：把每一天都当作生命的最后一天来过，总有一天你会发现自己是正确的。这句话给我留下了深刻印象。从那时起，33年来我每天早上对着镜子问自己：如果今天是生命中的最后一天，我还会去做今天要做的事吗？", "vocab": [{"w": "quote", "p": "/kwoʊt/", "m": "引言"}, {"w": "impression", "p": "/ɪmˈpreʃn/", "m": "印象"}, {"w": "mirror", "p": "/ˈmɪrər/", "m": "镜子"}, {"w": "certainly", "p": "/ˈsɜːrtnli/", "m": "肯定地"}]}, {"id": 22, "title": "Connecting the Dots", "category": "演讲", "words": 72, "text": "You cannot connect the dots looking forward; you can only connect them looking backwards. So you have to trust that the dots will somehow connect in your future. You have to trust in something your gut, destiny, life, karma, whatever. This approach has never let me down, and it has made all the difference in my life.", "translation": "你无法在向前看时把点连起来；你只能在回望时把它们连起来。所以你必须相信这些点迟早会连接在一起。你必须相信某些东西——你的直觉、命运、人生，什么都行。这个方法从未让我失望，它让我的人生有了天翻地覆的变化。", "vocab": [{"w": "dot", "p": "/dɑːt/", "m": "点"}, {"w": "somehow", "p": "/ˈsʌmhaʊ/", "m": "以某种方式"}, {"w": "gut", "p": "/ɡʌt/", "m": "直觉"}, {"w": "destiny", "p": "/ˈdestəni/", "m": "命运"}, {"w": "approach", "p": "/əˈproʊtʃ/", "m": "方法"}]}, {"id": 23, "title": "I Have a Dream", "category": "演讲", "words": 65, "text": "I have a dream that one day this nation will rise up and live out the true meaning of its creed. I have a dream that my four little children will one day live in a nation where they will not be judged by the color of their skin but by the content of their character.", "translation": "我有一个梦想，有一天这个国家会站起来，实现其信条的真谛。我有一个梦想，我的四个孩子有一天将生活在一个不以肤色而以品格来评判他们的国家里。", "vocab": [{"w": "nation", "p": "/ˈneɪʃn/", "m": "国家"}, {"w": "creed", "p": "/kriːd/", "m": "信条"}, {"w": "judge", "p": "/dʒʌdʒ/", "m": "评判"}, {"w": "skin", "p": "/skɪn/", "m": "皮肤"}, {"w": "content", "p": "/ˈkɑːntent/", "m": "内容"}]}, {"id": 24, "title": "Never Give In", "category": "演讲", "words": 60, "text": "Never give in. Never give in. Never, never, never, never in nothing, great or small, large or petty never give in, except to convictions of honor and good sense. Never yield to force. Never yield to the apparently overwhelming might of the enemy.", "translation": "绝不屈服。绝不屈服。绝不、绝不、绝不、绝不——无论大事还是小事、重要还是琐碎——绝不屈服，除非是对荣誉和理智的信念。绝不屈服于武力。绝不屈服于敌人表面上的压倒性力量。", "vocab": [{"w": "yield", "p": "/jiːld/", "m": "屈服"}, {"w": "conviction", "p": "/kənˈvɪkʃn/", "m": "信念"}, {"w": "honor", "p": "/ˈɑːnər/", "m": "荣誉"}, {"w": "overwhelming", "p": "/ˌoʊvərˈwelmɪŋ/", "m": "压倒性的"}, {"w": "enemy", "p": "/ˈenəmi/", "m": "敌人"}]}, {"id": 25, "title": "Gettysburg Address", "category": "演讲", "words": 70, "text": "Four score and seven years ago our fathers brought forth on this continent a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure.", "translation": "八十七年前，我们的先辈在这个大陆上建立了一个新国家，它孕育于自由，奉行人人生而平等的信念。现在我们卷入了一场伟大的内战，以考验这个国家，或任何孕育于自由并奉行平等信念的国家，是否能够长久存在。", "vocab": [{"w": "score", "p": "/skɔːr/", "m": "二十"}, {"w": "continent", "p": "/ˈkɑːntɪnənt/", "m": "大陆"}, {"w": "conceive", "p": "/kənˈsiːv/", "m": "孕育"}, {"w": "dedicated", "p": "/ˈdedɪkeɪtɪd/", "m": "奉献的"}, {"w": "endure", "p": "/ɪnˈdʊr/", "m": "持久"}]}, {"id": 26, "title": "Long Walk to Freedom", "category": "演讲", "words": 72, "text": "I learned that courage was not the absence of fear, but the triumph over it. The brave man is not he who does not feel afraid, but he who conquers that fear. No one is born hating another person because of the color of his skin or his background. People must learn to hate, and if they can learn to hate, they can be taught to love.", "translation": "我明白了勇气不是没有恐惧，而是战胜恐惧。勇敢的人不是不感到害怕的人，而是征服恐惧的人。没有人天生因为别人的肤色或背景而恨他们。仇恨是学来的，既然人能学会恨，也就能学会爱。", "vocab": [{"w": "courage", "p": "/ˈkɜːrɪdʒ/", "m": "勇气"}, {"w": "absence", "p": "/ˈæbsəns/", "m": "缺席"}, {"w": "triumph", "p": "/ˈtraɪʌmf/", "m": "胜利"}, {"w": "conquer", "p": "/ˈkɑːŋkər/", "m": "征服"}, {"w": "background", "p": "/ˈbækɡraʊnd/", "m": "背景"}]}, {"id": 27, "title": "Benefits of Failure", "category": "演讲", "words": 65, "text": "Failure meant a stripping away of the inessential. I stopped pretending to myself that I was anything other than what I was. I was set free, because my greatest fear had already been realized. And so rock bottom became the solid foundation on which I rebuilt my life.", "translation": "失败意味着剥离掉那些不重要的东西。我不再对自己伪装成别的样子。我自由了，因为我最大的恐惧已经成为现实。于是人生的谷底成了我重建生活的坚实基础。", "vocab": [{"w": "strip", "p": "/strɪp/", "m": "剥离"}, {"w": "inessential", "p": "/ˌɪnɪˈsenʃl/", "m": "非必要的"}, {"w": "rock bottom", "p": "/rɑːk ˈbɑːtəm/", "m": "最低谷"}, {"w": "foundation", "p": "/faʊnˈdeɪʃn/", "m": "基础"}, {"w": "rebuild", "p": "/ˌriːˈbɪld/", "m": "重建"}]}, {"id": 28, "title": "Believe in Your Dreams", "category": "演讲", "words": 62, "text": "The future belongs to those who believe in the beauty of their dreams. You must do the thing you think you cannot do. No one can make you feel inferior without your consent. Great minds discuss ideas; average minds discuss events; small minds discuss people.", "translation": "未来属于那些相信自己梦想之美的人。你必须去做你认为自己做不到的事。没有你的同意，没有人能让你感到低人一等。伟大的头脑讨论想法；普通的头脑讨论事件；狭隘的头脑讨论人。", "vocab": [{"w": "belong", "p": "/bɪˈlɔːŋ/", "m": "属于"}, {"w": "inferior", "p": "/ɪnˈfɪriər/", "m": "低等的"}, {"w": "consent", "p": "/kənˈsent/", "m": "同意"}, {"w": "average", "p": "/ˈævərɪdʒ/", "m": "普通的"}, {"w": "discuss", "p": "/dɪˈskʌs/", "m": "讨论"}]}, {"id": 29, "title": "On Curiosity", "category": "演讲", "words": 58, "text": "The important thing is not to stop questioning. Curiosity has its own reason for existing. One cannot help but be in awe when he contemplates the mysteries of eternity, of life, of the marvelous structure of reality. Never lose a holy curiosity.", "translation": "重要的是不要停止提问。好奇心有其存在的理由。当一个人思考永恒、生命和现实的奇妙结构这些奥秘时，他不由得感到敬畏。永远不要失去神圣的好奇心。", "vocab": [{"w": "curiosity", "p": "/ˌkjʊriˈɑːsəti/", "m": "好奇心"}, {"w": "awe", "p": "/ɔː/", "m": "敬畏"}, {"w": "contemplate", "p": "/ˈkɑːntəmpleɪt/", "m": "沉思"}, {"w": "eternity", "p": "/iˈtɜːrnəti/", "m": "永恒"}, {"w": "marvelous", "p": "/ˈmɑːrvələs/", "m": "奇妙的"}]}, {"id": 30, "title": "Be Your Best Self", "category": "生活", "words": 55, "text": "Every day is a new opportunity. You can learn something new, meet someone interesting, or make a small improvement. Do not compare yourself to others. Compare yourself to who you were yesterday. Be a little better today than you were yesterday. That is the path to growth.", "translation": "每一天都是新的机会。你可以学点新东西，认识有趣的人，或者做一点小改进。不要和别人比。和昨天的自己比。今天比昨天好一点点。这就是成长之路。", "vocab": [{"w": "opportunity", "p": "/ˌɑːpərˈtuːnəti/", "m": "机会"}, {"w": "improvement", "p": "/ɪmˈpruːvmənt/", "m": "改进"}, {"w": "compare", "p": "/kəmˈper/", "m": "比较"}, {"w": "path", "p": "/pæθ/", "m": "道路"}, {"w": "growth", "p": "/ɡroʊθ/", "m": "成长"}]}];
+function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML}
+function getToday(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function getStorage(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function setStorage(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let checkInData={};
+function loadCheckIn(){const d=getStorage('checkins')||{};checkInData=d}
+function saveCheckIn(aid){const t=getToday();loadCheckIn();if(!checkInData[t])checkInData[t]=[];if(!checkInData[t].find(c=>c.articleId===aid)){checkInData[t].push({articleId:aid,time:Date.now()});setStorage('checkins',checkInData)}}
+function isChecked(aid){const t=getToday();return checkInData[t]&&checkInData[t].some(c=>c.articleId===aid)}
+function getCheckedDates(){loadCheckIn();return Object.keys(checkInData).filter(d=>checkInData[d].length>0)}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),2000)}
+let readingSpeed=1,isReading=false,currentArticleId=null;
+// 录音
+let mediaRec=null,audioChunks=[],audioUrl=null,recTimer=null,recSec=0,isPaused=false,recCountDown=null;
+function startRec(){if(!navigator.mediaDevices){showToast('不支持录音');return}navigator.mediaDevices.getUserMedia({audio:true}).then(s=>{audioChunks=[];isPaused=false;recSec=0;const mr=new MediaRecorder(s);mediaRec=mr;mr.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data)};mr.onstop=()=>{const b=new Blob(audioChunks,{type:'audio/webm'});audioUrl=URL.createObjectURL(b);s.getTracks().forEach(t=>t.stop());document.getElementById('rec-timer').textContent='00:00';document.getElementById('rec-status').innerHTML='<button class="control-btn btn-secondary" onclick="playRec()">回听</button><button class="control-btn btn-secondary" onclick="delRec()">重录</button>';document.getElementById('rec-controls').innerHTML='<button class="control-btn btn-primary" onclick="startRec()">开始录音</button>'};mr.start();recCountDown=setInterval(()=>{recSec++;const m=String(Math.floor(recSec/60)).padStart(2,'0'),ss=String(recSec%60).padStart(2,'0');document.getElementById('rec-timer').textContent=m+':'+ss},1000);document.getElementById('rec-status').innerHTML='<span class="rec-indicator"></span> 录音中...';document.getElementById('rec-controls').innerHTML='<button class="control-btn btn-danger" onclick="pauseRec()">暂停</button><button class="control-btn btn-danger" onclick="stopRec()">停止</button>'}).catch(()=>showToast('需要麦克风权限'))}
+function pauseRec(){if(mediaRec&&mediaRec.state==='recording'){mediaRec.pause();isPaused=true;if(recCountDown)clearInterval(recCountDown);document.getElementById('rec-status').innerHTML='已暂停';document.getElementById('rec-controls').innerHTML='<button class="control-btn btn-primary" onclick="resumeRec()">继续</button><button class="control-btn btn-danger" onclick="stopRec()">停止</button>'}}
+function resumeRec(){if(mediaRec&&mediaRec.state==='paused'){mediaRec.resume();isPaused=false;recCountDown=setInterval(()=>{recSec++;const m=String(Math.floor(recSec/60)).padStart(2,'0'),ss=String(recSec%60).padStart(2,'0');document.getElementById('rec-timer').textContent=m+':'+ss},1000);document.getElementById('rec-status').innerHTML='<span class="rec-indicator"></span> 录音中...';document.getElementById('rec-controls').innerHTML='<button class="control-btn btn-danger" onclick="pauseRec()">暂停</button><button class="control-btn btn-danger" onclick="stopRec()">停止</button>'}}
+function stopRec(){if(mediaRec&&mediaRec.state!=='inactive'){mediaRec.stop();if(recCountDown)clearInterval(recCountDown)}}
+function playRec(){if(audioUrl){const a=new Audio(audioUrl);a.play()}}
+function delRec(){audioUrl=null;audioChunks=[];document.getElementById('rec-timer').textContent='00:00';document.getElementById('rec-status').innerHTML='';document.getElementById('rec-controls').innerHTML='<button class="control-btn btn-primary" onclick="startRec()">开始录音</button>'}
+function speakText(text){if(!window.speechSynthesis)return showToast('不支持朗读');window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=readingSpeed;window.speechSynthesis.speak(u);return u}
+function stopSpk(){if(window.speechSynthesis)window.speechSynthesis.cancel();isReading=false}
+
+// 切换Tab
+function switchTab(tab){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  if(tab==='today')renderToday();
+  else if(tab==='library')renderLibrary();
+  else if(tab==='calendar')renderCalendar();
+}
+
+// 今日文章
+function renderToday(aid){
+  const id=aid||getTodayId();currentArticleId=id;
+  const a=ARTICLES.find(x=>x.id===id);if(!a)return;
+  const checked=isChecked(id);
+  let h='<div class="page-header"><h1>今日文章</h1><div class="header-date">'+getToday()+' · 第'+id+'篇</div></div>';
+  h+='<div class="article-card">';
+  h+='<div class="article-meta"><span class="category-tag">'+a.category+'</span><span class="word-count">'+a.words+'词</span></div>';
+  h+='<h2 class="article-title">'+escapeHtml(a.title)+'</h2>';
+  h+='<div class="controls-bar">';
+  h+='<button class="control-btn btn-primary" onclick="readFull()">全文朗读</button>';
+  h+='<button class="control-btn btn-secondary" onclick="stopSpk()">停止</button>';
+  h+='<button class="speed-toggle'+(readingSpeed==0.7?' active':'')+'" onclick="readingSpeed=0.7;document.querySelectorAll(\'.speed-toggle\').forEach(t=>t.classList.toggle(\'active\',t===this))">慢速</button>';
+  h+='<button class="speed-toggle'+(readingSpeed==1?' active':'')+'" onclick="readingSpeed=1;document.querySelectorAll(\'.speed-toggle\').forEach(t=>t.classList.toggle(\'active\',t===this))">常速</button>';
+  h+='</div>';
+  h+='<div class="english-text">';
+  const vocabMap={};a.vocab.forEach(v=>{vocabMap[v.w.toLowerCase()]=v});
+  const sents=a.text.split(/(?<=[.!?])\s+/);
+  sents.forEach(s=>{
+    if(!s.trim())return;
+    h+='<div class="sentence" onclick="if(!event.target.classList.contains(\'word\'))speakText(\''+escapeHtml(s.replace(/'/g,"\\'"))+'\')">';
+    const parts=s.split(/([a-zA-Z\']+)/);
+    parts.forEach(p=>{
+      if(!p)return;
+      if(/^[a-zA-Z\']+$/.test(p)){
+        const v=vocabMap[p.toLowerCase()];
+        if(v)h+='<span class="word" onclick="event.stopPropagation();showWord(\''+escapeHtml(v.w.replace(/'/g,"\\'"))+'\',\''+escapeHtml(v.p)+'\',\''+escapeHtml(v.m)+'\')">'+escapeHtml(p)+'</span>';
+        else h+='<span class="word" onclick="event.stopPropagation();showWord(\''+escapeHtml(p)+'\',\'\',\'\')">'+escapeHtml(p)+'</span>';
+      }else h+=escapeHtml(p);
+    });
+    h+='</div>';
+  });
+  h+='</div>';
+  h+='<div class="translation-box"><h3>中文翻译</h3><div class="translation-text">'+escapeHtml(a.translation)+'</div></div>';
+  h+='<div class="vocab-section"><h3>生词</h3><div class="vocab-list">';
+  a.vocab.forEach(v=>{h+='<div class="vocab-item" onclick="showWord(\''+escapeHtml(v.w.replace(/'/g,"\\'"))+'\',\''+escapeHtml(v.p)+'\',\''+escapeHtml(v.m)+'\')"><span class="vocab-word">'+escapeHtml(v.w)+'</span><span class="vocab-phonetic">'+escapeHtml(v.p)+'</span><span class="vocab-meaning">'+escapeHtml(v.m)+'</span></div>'});
+  h+='</div></div>';
+  if(checked)h+='<div class="checked-in-badge">今日已打卡</div>';
+  else h+='<div class="checkin-section"><div class="checkin-title">完成背诵后打卡</div><div class="recording-section" id="rec-section"><div class="recording-timer" id="rec-timer">00:00</div><div class="recording-status" id="rec-status"></div><div class="recording-controls" id="rec-controls"><button class="control-btn btn-primary" onclick="startRec()">开始录音</button></div></div><button class="checkin-btn" onclick="doCheckIn('+id+')" id="ci-btn">已背诵，打卡</button></div>';
+  h+='</div>';
+  document.getElementById('main-content').innerHTML=h;
+}
+function getTodayId(){const d=new Date();const s=new Date(d.getFullYear(),0,0);const dy=Math.floor((d-s)/86400000);return(dy%30)+1}
+function readFull(){const a=ARTICLES.find(x=>x.id===currentArticleId);if(!a)return;speakText(a.text)}
+function showWord(w,p,m){document.getElementById('popup-word').textContent=w;document.getElementById('popup-phonetic').textContent=p;document.getElementById('popup-meaning').textContent=m||'(未收录)';document.getElementById('word-popup').classList.remove('hidden');if(p)speakText(w)}
+function doCheckIn(id){saveCheckIn(id);showToast('打卡成功！');renderToday(id)}
+
+// 文库
+function renderLibrary(filter){
+  const f=filter||'全部';
+  let h='<div class="library-header"><h1>文库</h1><div class="filter-tabs">';
+  ['全部','生活','职场','演讲'].forEach(c=>{h+='<button class="filter-tab'+(c===f?' active':'')+'" onclick="renderLibrary(\''+c+'\')">'+c+'</button>'});
+  h+='</div></div><div class="article-list">';
+  const list=f==='全部'?ARTICLES:ARTICLES.filter(a=>a.category===f);
+  list.forEach(a=>{
+    const ci=isChecked(a.id);
+    h+='<div class="article-list-item" onclick="switchTab(\'today\');renderToday('+a.id+')">';
+    h+='<div class="list-number">'+a.id+'</div>';
+    h+='<div class="list-info"><div class="list-title">'+escapeHtml(a.title)+'</div><div class="list-meta"><span class="category-tag">'+a.category+'</span><span class="word-count">'+a.words+'词</span></div></div>';
+    if(ci)h+='<div class="check-icon">OK</div>';
+    h+='</div>';
+  });
+  if(list.length===0)h+='<div style="text-align:center;padding:40px;color:#6c757d">暂无文章</div>';
+  h+='</div>';
+  document.getElementById('main-content').innerHTML=h;
+}
+
+// 日历
+function renderCalendar(year,month){
+  const now=new Date();const y=year||now.getFullYear();const m=month||now.getMonth();
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab==='calendar'));
+  const checkedDates=getCheckedDates();
+  const total=checkedDates.length;
+  let streak=0;const s=checkedDates.sort();for(let i=s.length-1;i>=0;i--){const d=new Date(s[i]);const y2=d.getFullYear(),m2=d.getMonth();const exp=new Date();exp.setDate(exp.getDate()-streak);if(y2===exp.getFullYear()&&m2===exp.getMonth()&&d.getDate()===exp.getDate())streak++;else break}
+  // 本月统计
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  let thisMonth=0;checkedDates.forEach(d=>{const p=d.split('-');if(parseInt(p[0])===y&&parseInt(p[1])-1===m)thisMonth++});
+  const rate=daysInMonth>0?Math.round(thisMonth/daysInMonth*100):0;
+  let h='<div class="calendar-header"><h1>打卡日历</h1></div>';
+  h+='<div class="stats-row"><div class="stat-card"><div class="stat-value">'+total+'</div><div class="stat-label">总打卡</div></div><div class="stat-card"><div class="stat-value">'+streak+'</div><div class="stat-label">连续天数</div></div><div class="stat-card"><div class="stat-value">'+rate+'%</div><div class="stat-label">本月率</div></div></div>';
+  h+='<div class="calendar-grid">';
+  const monthNames=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  h+='<div class="calendar-month"><button onclick="renderCalendar('+y+','+(m-1)+')">&lt;</button><h2>'+monthNames[m]+' '+y+'</h2><button onclick="renderCalendar('+y+','+(m+1)+')">&gt;</button></div>';
+  h+='<div class="weekdays"><div class="weekday">日</div><div class="weekday">一</div><div class="weekday">二</div><div class="weekday">三</div><div class="weekday">四</div><div class="weekday">五</div><div class="weekday">六</div></div><div class="days-grid">';
+  const firstDow=new Date(y,m,1).getDay();
+  for(let i=0;i<firstDow;i++)h+='<div class="day-cell other-month"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const isToday=(y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate());
+    const isC=checkedDates.includes(dateStr);
+    let cls='day-cell';
+    if(isToday)cls+=' today';
+    if(isC)cls+=' checked';
+    h+='<div class="'+cls+'">'+d+(isC?'<div class="day-dot"></div>':'')+'</div>';
+  }
+  h+='</div></div>';
+  document.getElementById('main-content').innerHTML=h;
+}
+
+// 启动
+document.addEventListener('DOMContentLoaded',()=>{
+  loadCheckIn();
+  document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+  document.getElementById('popup-close-btn').addEventListener('click',()=>document.getElementById('word-popup').classList.add('hidden'));
+  renderToday();
+});
+</script>
+</body>
+</html>
