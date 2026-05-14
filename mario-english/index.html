@@ -3,97 +3,136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>🍄 马里欧单词大冒险</title>
+<title>🍄 超级马里欧单词冒险</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden;touch-action:none;user-select:none}
 
-#game{width:100%;max-width:900px;height:100vh;margin:0 auto;position:relative;background:linear-gradient(180deg,#5C94FC 65%,#E86A17 65%);overflow:hidden}
-
-/* 云朵 */
-.cloud{position:absolute;font-size:50px;opacity:.7;animation:cloudMove linear infinite}
-@keyframes cloudMove{from{left:-100px}to{left:100%}}
+#game{width:100%;max-width:900px;height:100vh;margin:0 auto;position:relative;background:linear-gradient(180deg,#5C94FC 60%,#E86A17 60%);overflow:hidden}
 
 /* 地面 */
-.ground{position:absolute;bottom:0;width:100%;height:35%;background:linear-gradient(180deg,#E86A17,#8B4513);border-top:4px solid #5C3317}
-.ground::before{content:'';position:absolute;top:0;left:0;right:0;height:15px;background-image:repeating-linear-gradient(90deg,transparent,transparent 25px,#5C3317 25px,#5C3317 28px)}
+.ground{position:absolute;bottom:0;width:200%;height:40%;background:linear-gradient(180deg,#E86A17,#8B4513);border-top:4px solid #5C3317;animation:groundMove 2s linear infinite}
+.ground::before{content:'';position:absolute;top:0;left:0;width:100%;height:15px;background-image:repeating-linear-gradient(90deg,transparent,transparent 25px,#5C3317 25px,#5C3317 28px)}
+@keyframes groundMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-/* 马里欧 */
-#mario{position:absolute;bottom:35%;left:100px;font-size:45px;z-index:50;transition:left .3s;cursor:pointer}
-#mario.jump{animation:marioJump .4s ease}
-#mario.big{font-size:55px}
-@keyframes marioJump{0%,100%{transform:translateY(0) scaleY(1)}40%{transform:translateY(-180px) scaleY(1.1)}60%{transform:translateY(-180px) scaleY(0.9)}}
+/* 云朵 */
+.cloud{position:absolute;font-size:40px;opacity:.6;animation:cloudMove linear infinite}
+@keyframes cloudMove{from{left:100%}to{left:-100px}}
+
+/* 山 */
+.mountain{position:absolute;bottom:40%;font-size:80px;opacity:.8}
+
+/* 真正的马里欧 (CSS绘制) */
+.mario{position:absolute;bottom:40%;left:100px;width:40px;height:50px;z-index:100;transition:transform .1s}
+.mario .hat{position:absolute;top:0;left:5px;width:30px;height:12px;background:#FF0000;border-radius:10px 10px 0 0}
+.mario .face{position:absolute;top:10px;left:8px;width:24px;height:18px;background:#FFCC99;border-radius:0 0 10px 10px}
+.mario .eye{position:absolute;top:13px;left:12px;width:4px;height:5px;background:#000;border-radius:50%}
+.mario .mustache{position:absolute;top:18px;left:10px;width:16px;height:4px;background:#000;border-radius:0 0 5px 5px}
+.mario .body{position:absolute;top:26px;left:5px;width:30px;height:16px;background:#FF0000;border-radius:5px}
+.mario .button{position:absolute;top:30px;left:14px;width:6px;height:6px;background:#FFD700;border-radius:50%}
+.mario .arm{position:absolute;top:28px;left:0;width:8px;height:12px;background:#FF0000;border-radius:5px}
+.mario .arm.right{left:32px}
+.mario .leg{position:absolute;top:40px;left:8px;width:10px;height:12px;background:#0000FF;border-radius:0 0 5px 5px}
+.mario .leg.right{left:22px}
+
+/* 大马里欧 */
+.mario.big{width:50px;height:65px}
+.mario.big .hat{left:5px;width:40px;height:15px}
+.mario.big .face{left:10px;width:30px;height:22px}
+.mario.big .eye{top:16px;left:16px;width:5px;height:6px}
+.mario.big .mustache{top:22px;left:12px;width:20px;height:5px}
+.mario.big .body{left:5px;width:40px;height:20px}
+.mario.big .button{top:36px;left:19px;width:7px;height:7px}
+.mario.big .arm{top:34px;width:10px;height:15px}
+.mario.big .arm.right{left:40px}
+.mario.big .leg{top:52px;left:10px;width:12px;height:15px}
+.mario.big .leg.right{left:28px}
+
+/* 跳跃 */
+.mario.jump{animation:marioJump .5s ease}
+@keyframes marioJump{0%,100%{transform:translateY(0)}50%{transform:translateY(-180px)}}
+
+/* 无敌闪烁 */
+.mario.star{animation:starFlash .2s infinite}
+@keyframes starFlash{0%,100%{opacity:1}50%{opacity:.5}}
 
 /* 砖块 */
-.brick{position:absolute;width:55px;height:55px;border:3px solid;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .1s;z-index:10;font-weight:bold;font-size:22px;animation:brickFloat 2s ease-in-out infinite}
-.brick:active{transform:translateY(4px) scale(0.95)}
-@keyframes brickFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.brick{position:absolute;bottom:60%;width:50px;height:50px;background:linear-gradient(135deg,#B85C38,#8B4513);border:3px solid #5C3317;border-radius:3px;display:flex;align-items:center;justify-content:center;z-index:50}
+.brick .q{color:#FFD700;font-size:24px;font-weight:bold;text-shadow:2px 2px 0 #B8860B;animation:qFlash .5s infinite}
+@keyframes qFlash{0%,100%{opacity:1}50%{opacity:.6}}
 
-.brick.question{background:linear-gradient(135deg,#FFD700,#FFA500);border-color:#B8860B;color:#8B4513}
-.brick.normal{background:linear-gradient(135deg,#B85C38,#8B4513);border-color:#5C3317;animation:none}
-.brick.hit{background:#666;border-color:#444;pointer-events:none;animation:none}
+/* 问号砖 */
+.brick.question{background:linear-gradient(135deg,#FFD700,#FFA500);border-color:#B8860B}
 
-/* 金币 */
-.coin-pop{position:absolute;font-size:28px;animation:coinUp .6s ease-out forwards;z-index:60}
-@keyframes coinUp{0%{transform:translateY(0) scale(1);opacity:1}50%{transform:translateY(-80px) scale(1.3)}100%{transform:translateY(-120px) scale(0.8);opacity:0}}
+/* 道具砖 */
+.brick.item-brick{background:linear-gradient(135deg,#90EE90,#228B22);border-color:#006400}
 
-/* 怪物 */
-.enemy{position:absolute;bottom:35%;font-size:35px;z-index:40;animation:enemyWalk 4s linear infinite}
-@keyframes enemyWalk{0%{left:100%}100%{left:-50px}}
+/* 顶碎的砖 */
+.brick.broken{background:#666;border-color:#444;opacity:.7}
+.brick.broken .q{display:none}
 
 /* 道具 */
-.item{position:absolute;font-size:35px;z-index:45;animation:itemBounce 1s ease-in-out infinite}
-@keyframes itemBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
+.item{position:absolute;bottom:60%;width:35px;height:35px;display:flex;align-items:center;justify-content:center;font-size:28px;z-index:60;animation:itemPop .5s ease}
+@keyframes itemPop{0%{transform:translateY(0)}50%{transform:translateY(-60px)}100%{transform:translateY(0)}}
 
-/* 弹窗 */
-.popup{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);background:#fff;border:5px solid #E86A17;border-radius:20px;padding:25px;text-align:center;z-index:200;box-shadow:0 15px 40px rgba(0,0,0,.5);transition:transform .3s;min-width:320px;max-width:90%}
-.popup.show{transform:translate(-50%,-50%) scale(1)}
-.popup h3{color:#E86A17;font-size:22px;margin-bottom:8px}
-.popup .word-en{font-size:38px;font-weight:bold;color:#333;margin:8px 0}
-.popup .word-pron{color:#888;font-size:15px;margin-bottom:5px}
-.popup .hint{color:#666;font-size:16px;margin-bottom:12px}
-.popup .choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px 0}
-.popup .choice{padding:14px;font-size:20px;border:3px solid #ddd;border-radius:12px;background:#f9f9f9;cursor:pointer;transition:all .2s}
-.popup .choice:hover{background:#FFE4B5;border-color:#E86A17;transform:scale(1.05)}
-.popup .choice.right{background:#90EE90 !important;border-color:#228B22 !important;color:#006400}
-.popup .choice.wrong{background:#FFB6C1 !important;border-color:#DC143C !important;color:#8B0000}
-.popup .feedback{font-size:20px;margin:12px 0;height:30px;font-weight:bold}
-.popup .timer-bar{height:6px;background:#eee;border-radius:3px;margin:10px 0;overflow:hidden}
-.popup .timer-fill{height:100%;background:linear-gradient(90deg,#4CAF50,#FFD700,#FF5722);border-radius:3px;transition:width 1s linear}
+/* 金币 */
+.coin{position:absolute;font-size:24px;z-index:60;animation:coinSpin .6s ease forwards}
+@keyframes coinSpin{0%{transform:translateY(0) rotateY(0)}50%{transform:translateY(-80px) rotateY(180deg)}100%{transform:translateY(-40px) rotateY(360deg);opacity:0}}
+
+/* 火球 */
+.fireball{position:absolute;width:20px;height:20px;background:#FF4500;border-radius:50%;z-index:90;animation:fireMove 1s linear forwards}
+.fireball::after{content:'';position:absolute;inset:-5px;background:rgba(255,69,0,.3);border-radius:50%;animation:fireGlow .3s infinite}
+@keyframes fireMove{to{transform:translateX(300px)}}@keyframes fireGlow{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+
+/* 怪物 */
+.enemy{position:absolute;bottom:40%;width:35px;height:35px;z-index:80}
+.enemy .goomba-body{position:absolute;bottom:0;width:35px;height:25px;background:#8B4513;border-radius:15px 15px 5px 5px}
+.enemy .goomba-face{position:absolute;bottom:8px;left:8px;width:20px;height:12px;background:#FFE4B5;border-radius:10px}
+.enemy .goomba-eye{position:absolute;bottom:14px;width:5px;height:5px;background:#000;border-radius:50%}
+.enemy .goomba-eye.left{left:10px}.enemy .goomba-eye.right{left:22px}
+.enemy .goomba-brow{position:absolute;bottom:18px;width:8px;height:3px;background:#000}
+.enemy .goomba-brow.left{left:8px;transform:rotate(20deg)}.enemy .goomba-brow.right{left:21px;transform:rotate(-20deg)}
+
+/* 被踩扁 */
+.enemy.flat{transform:scaleY(.3);opacity:.7}
+
+/* 单词弹窗 */
+.word-popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:#fff;border:5px solid #E86A17;border-radius:20px;padding:30px;text-align:center;z-index:300;box-shadow:0 15px 40px rgba(0,0,0,.5);transition:transform .3s;min-width:350px}
+.word-popup.show{transform:translate(-50%,-50%) scale(1)}
+.word-popup h2{color:#E86A17;font-size:26px;margin-bottom:15px}
+.word-popup .word-en{font-size:42px;font-weight:bold;color:#333;margin:10px 0}
+.word-popup .word-pron{color:#888;font-size:18px;margin-bottom:5px}
+.word-popup .choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.word-popup .choice{padding:15px;font-size:22px;border:3px solid #ddd;border-radius:12px;background:#f9f9f9;cursor:pointer;transition:all .2s}
+.word-popup .choice:hover{background:#FFE4B5;border-color:#E86A17;transform:scale(1.05)}
+.word-popup .choice.right{background:#90EE90 !important;border-color:#228B22 !important}
+.word-popup .choice.wrong{background:#FFB6C1 !important;border-color:#DC143C !important}
+.word-popup .feedback{font-size:22px;margin:15px 0;height:30px;font-weight:bold}
 
 /* HUD */
-#hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:150;flex-wrap:wrap;gap:5px}
-#hud div{background:rgba(0,0,0,.6);color:#fff;padding:6px 12px;border-radius:15px;font-size:15px;font-weight:bold}
-#hud .time{color:#FFD700}
+#hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:200;flex-wrap:wrap;gap:5px}
+#hud div{background:rgba(0,0,0,.6);color:#fff;padding:8px 15px;border-radius:20px;font-size:16px;font-weight:bold}
 
 /* 屏幕 */
-.screen{position:absolute;inset:0;background:linear-gradient(180deg,#5C94FC 55%,#E86A17 55%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;color:#fff;text-align:center;padding:20px}
+.screen{position:absolute;inset:0;background:linear-gradient(180deg,#5C94FC 55%,#E86A17 55%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:400;color:#fff;text-align:center;padding:20px}
 .screen.hide{display:none}
-.screen h1{font-size:40px;text-shadow:3px 3px 0 #E86A17;margin-bottom:10px}
-.screen p{font-size:17px;margin-bottom:15px;opacity:.9;max-width:400px;line-height:1.6}
-.screen .big{font-size:90px;margin:15px 0;animation:bounce 1.2s ease infinite}
-@keyframes bounce{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-15px) rotate(-5deg)}75%{transform:translateY(-15px) rotate(5deg)}}
-.btn{padding:14px 45px;font-size:22px;border:none;border-radius:50px;background:linear-gradient(135deg,#E86A17,#FF6B35);color:#fff;cursor:pointer;margin:8px;box-shadow:0 6px 20px rgba(232,106,23,.4);transition:all .2s}
-.btn:hover{transform:scale(1.08);box-shadow:0 8px 25px rgba(232,106,23,.6)}
-.story{background:rgba(0,0,0,.5);padding:18px;border-radius:15px;margin:12px;max-width:420px}
-.story p{margin:8px 0;font-size:16px}
+.screen h1{font-size:42px;text-shadow:3px 3px 0 #E86A17;margin-bottom:15px}
+.screen p{font-size:18px;margin-bottom:20px;max-width:450px;line-height:1.8}
+.screen .big{font-size:100px;margin:20px 0;animation:bounce 1.2s ease infinite}
+@keyframes bounce{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-20px) rotate(5deg)}}
+.btn{padding:15px 50px;font-size:24px;border:none;border-radius:50px;background:linear-gradient(135deg,#E86A17,#FF6B35);color:#fff;cursor:pointer;margin:10px;box-shadow:0 6px 20px rgba(232,106,23,.4);transition:all .2s}
+.btn:hover{transform:scale(1.08)}
+.story{background:rgba(0,0,0,.5);padding:20px;border-radius:15px;margin:15px;max-width:450px}
 
-/* 连击 */
-#combo{position:absolute;top:60px;left:50%;transform:translateX(-50%);font-size:24px;font-weight:bold;color:#FFD700;text-shadow:2px 2px 0 #E86A17;z-index:150;opacity:0;transition:opacity .3s}
-#combo.show{opacity:1}
-
-/* 方向键 */
-.controls{position:fixed;bottom:20px;left:20px;z-index:500;display:flex;gap:15px}
-.ctrl-btn{width:60px;height:60px;background:rgba(255,255,255,.4);border:3px solid rgba(255,255,255,.7);border-radius:50%;font-size:28px;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(5px);box-shadow:0 4px 15px rgba(0,0,0,.3)}
+/* 控制按钮 */
+.controls{position:fixed;bottom:20px;right:20px;z-index:500;display:flex;gap:15px}
+.ctrl-btn{width:70px;height:70px;background:rgba(255,255,255,.4);border:3px solid rgba(255,255,255,.7);border-radius:50%;font-size:32px;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(5px);box-shadow:0 4px 15px rgba(0,0,0,.3)}
 .ctrl-btn:active{background:rgba(255,255,255,.6);transform:scale(0.9)}
+.ctrl-btn.fire-btn{background:rgba(255,69,0,.5);border-color:#FF4500}
 
-/* 公主 */
-.princess{position:absolute;bottom:35%;right:80px;font-size:50px;z-index:40;animation:princessIdle 2s ease-in-out infinite}
-@keyframes princessIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px) rotate(5deg)}}
-
-/* 库巴 */
-.bowser{position:absolute;bottom:35%;right:30px;font-size:55px;z-index:40;animation:bowserIdle 1.5s ease-in-out infinite}
-@keyframes bowserIdle{0%,100%{transform:translateY(0) scaleX(1)}50%{transform:translateY(-8px) scaleX(1.05)}}
+/* 状态提示 */
+.status-msg{position:absolute;top:80px;left:50%;transform:translateX(-50%);font-size:24px;font-weight:bold;color:#FFD700;text-shadow:2px 2px 0 #E86A17;z-index:200;animation:statusPop 2s forwards}
+@keyframes statusPop{0%{transform:translateX(-50%) scale(0);opacity:0}20%{transform:translateX(-50%) scale(1.2);opacity:1}80%{transform:translateX(-50%) scale(1);opacity:1}100%{transform:translateX(-50%) scale(1);opacity:0}}
 </style>
 </head>
 <body>
@@ -101,58 +140,66 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden
 
 <!-- HUD -->
 <div id="hud">
-  <div>🍄 单词冒险</div>
+  <div>🍄 超级马里欧单词冒险</div>
   <div>🪙 <span id="coins">0</span></div>
   <div>❤️ <span id="lives">3</span></div>
   <div>⭐ <span id="score">0</span></div>
-  <div class="time">⏱️ <span id="time">60</span>秒</div>
 </div>
-<div id="combo"></div>
 
 <!-- 云朵 -->
-<div class="cloud" style="top:8%;animation-duration:30s">☁️</div>
-<div class="cloud" style="top:18%;animation-duration:25s;animation-delay:-8s">☁️</div>
-<div class="cloud" style="top:12%;animation-duration:35s;animation-delay:-15s">☁️</div>
+<div class="cloud" style="top:10%;animation-duration:20s">☁️</div>
+<div class="cloud" style="top:20%;animation-duration:25s;animation-delay:-5s">☁️</div>
+
+<!-- 山 -->
+<div class="mountain" style="left:20%">⛰️</div>
+<div class="mountain" style="left:60%;font-size:60px">⛰️</div>
 
 <!-- 地面 -->
 <div class="ground"></div>
 
 <!-- 马里欧 -->
-<div id="mario">🏃</div>
+<div id="mario" class="mario">
+  <div class="hat"></div>
+  <div class="face"></div>
+  <div class="eye"></div>
+  <div class="mustache"></div>
+  <div class="body"></div>
+  <div class="button"></div>
+  <div class="arm"></div>
+  <div class="arm right"></div>
+  <div class="leg"></div>
+  <div class="leg right"></div>
+</div>
 
-<!-- 公主（通关显示） -->
-<div class="princess" id="princess" style="display:none">👸</div>
-
-<!-- 库巴（失败显示） -->
-<div class="bowser" id="bowser" style="display:none">🐢</div>
-
-<!-- 砖块 -->
+<!-- 砖块容器 -->
 <div id="bricks"></div>
 
-<!-- 怪物 -->
+<!-- 怪物容器 -->
 <div id="enemies"></div>
 
-<!-- 弹窗 -->
-<div class="popup" id="popup">
-  <h3>🧱 顶到了砖块！</h3>
+<!-- 道具容器 -->
+<div id="items"></div>
+
+<!-- 单词弹窗 -->
+<div class="word-popup" id="word-popup">
+  <h2>🧱 遇到了单词砖！</h2>
   <div class="word-pron" id="popup-pron"></div>
   <div class="word-en" id="popup-word"></div>
-  <div class="hint">这个单词是什么意思？</div>
-  <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+  <div style="color:#666;margin:10px 0">选择正确的中文意思才能继续冒险！</div>
   <div class="choices" id="popup-choices"></div>
   <div class="feedback" id="popup-feedback"></div>
 </div>
 
 <!-- 开始画面 -->
 <div class="screen" id="start-screen">
-  <h1>🍄 马里欧单词大冒险</h1>
+  <h1>🍄 超级马里欧单词冒险</h1>
   <div class="big">🏃</div>
   <div class="story">
     <p>👸 公主被库巴抓走了！</p>
-    <p>🏃 控制马里欧移动跳跃</p>
-    <p>🧱 顶碎问号砖学单词</p>
-    <p>⚡ 答对救出公主！</p>
-    <p>💡 键盘：← → 移动，↑ 跳跃/顶砖</p>
+    <p>🏃 马里欧会自动向前跑</p>
+    <p>⬆️ 按上键或点击跳跃</p>
+    <p>🧱 遇到单词砖要答对才能过</p>
+    <p>🍄 顶道具砖可能获得惊喜！</p>
   </div>
   <button class="btn" onclick="startGame()">开始冒险！</button>
 </div>
@@ -160,372 +207,430 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;overflow:hidden
 <!-- 结束画面 -->
 <div class="screen hide" id="win-screen">
   <h1>🎉 救出公主了！</h1>
-  <div class="big">👸💕🏃</div>
+  <div class="big">👸💕</div>
   <div class="story">
-    <p>马里欧成功打败了库巴！</p>
+    <p>马里欧成功救出了公主！</p>
     <p>🪙 金币：<span id="win-coins">0</span></p>
     <p>⭐ 得分：<span id="win-score">0</span></p>
-    <p>🔥 最高连击：<span id="win-combo">0</span></p>
   </div>
   <button class="btn" onclick="startGame()">再玩一次</button>
 </div>
 
 <!-- 失败画面 -->
 <div class="screen hide" id="fail-screen">
-  <h1>😢 被库巴打败了</h1>
+  <h1>😢 游戏结束</h1>
   <div class="big">🐢</div>
   <div class="story">
-    <p>马里欧失败了...</p>
-    <p>不要放弃，公主在等你！</p>
+    <p>马里欧失败了，但不要放弃！</p>
     <p>⭐ 得分：<span id="fail-score">0</span></p>
   </div>
   <button class="btn" onclick="startGame()">重新挑战</button>
 </div>
 
-<!-- 方向键（移动端） -->
+<!-- 控制按钮 -->
 <div class="controls">
-  <div class="ctrl-btn" onclick="moveMario(-1)">⬅️</div>
-  <div class="ctrl-btn" onclick="jumpMario()">⬆️</div>
-  <div class="ctrl-btn" onclick="moveMario(1)">➡️</div>
+  <div class="ctrl-btn" onclick="jump()">⬆️</div>
+  <div class="ctrl-btn fire-btn hide" id="fire-btn" onclick="shootFire()">🔥</div>
 </div>
 
 </div>
 
 <script>
-// ========== 音效系统 ==========
+// ========== 音效 ==========
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
-
-function getAudio() {
-  if (!audioCtx) audioCtx = new AudioContext();
-  return audioCtx;
+function getAudio(){if(!audioCtx)audioCtx=new AudioContext();return audioCtx}
+function playSound(freq,dur,type='square',vol=0.1){
+  try{const ctx=getAudio();const o=ctx.createOscillator();const g=ctx.createGain();o.type=type;o.frequency.value=freq;g.gain.value=vol;g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+dur)}catch(e){}
 }
-
-function playSound(freq, duration, type = 'square', volume = 0.1) {
-  try {
-    const ctx = getAudio();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
-    gain.gain.value = volume;
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
-  } catch(e) {}
-}
-
-function sfxJump() { playSound(300, 0.15, 'square', 0.08); playSound(450, 0.15, 'square', 0.06); }
-function sfxCoin() { playSound(900, 0.1, 'sine', 0.1); setTimeout(() => playSound(1200, 0.1, 'sine', 0.1), 80); }
-function sfxCorrect() { playSound(523, 0.1, 'sine', 0.12); setTimeout(() => playSound(659, 0.1, 'sine', 0.12), 100); setTimeout(() => playSound(784, 0.2, 'sine', 0.15), 200); }
-function sfxWrong() { playSound(200, 0.2, 'sawtooth', 0.1); setTimeout(() => playSound(150, 0.25, 'sawtooth', 0.1), 150); }
-function sfxHit() { playSound(150, 0.1, 'square', 0.1); playSound(100, 0.15, 'square', 0.1); }
-function sfxWin() {
-  [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playSound(f, 0.15, 'sine', 0.12), i * 150));
-}
+function sfxJump(){playSound(300,0.15,'square',0.08);playSound(450,0.15,'square',0.06)}
+function sfxCoin(){playSound(900,0.1,'sine',0.1);setTimeout(()=>playSound(1200,0.1,'sine',0.1),80)}
+function sfxHit(){playSound(150,0.1,'square',0.1);playSound(100,0.15,'square',0.1)}
+function sfxCorrect(){playSound(523,0.1,'sine',0.12);setTimeout(()=>playSound(659,0.1,'sine',0.12),100);setTimeout(()=>playSound(784,0.2,'sine',0.15),200)}
+function sfxWrong(){playSound(200,0.2,'sawtooth',0.1);setTimeout(()=>playSound(150,0.25,'sawtooth',0.1),150)}
+function sfxPowerUp(){[300,400,500,600,800].forEach((f,i)=>setTimeout(()=>playSound(f,0.15,'sine',0.12),i*100))}
+function sfxFire(){playSound(800,0.1,'sawtooth',0.1);setTimeout(()=>playSound(600,0.15,'sawtooth',0.08),50)}
 
 // ========== 单词库 ==========
-const WORDS = [
-  {en:'red', cn:'红色', pron:'/red/'}, {en:'blue', cn:'蓝色', pron:'/bluː/'},
-  {en:'green', cn:'绿色', pron:'/ɡriːn/'}, {en:'yellow', cn:'黄色', pron:'/ˈjel.əʊ/'},
-  {en:'one', cn:'一', pron:'/wʌn/'}, {en:'two', cn:'二', pron:'/tuː/'},
-  {en:'three', cn:'三', pron:'/θriː/'}, {en:'cat', cn:'猫', pron:'/kæt/'},
-  {en:'dog', cn:'狗', pron:'/dɒɡ/'}, {en:'bird', cn:'鸟', pron:'/bɜːd/'},
-  {en:'apple', cn:'苹果', pron:'/ˈæp.əl/'}, {en:'banana', cn:'香蕉', pron:'/bəˈnɑː.nə/'},
-  {en:'head', cn:'头', pron:'/hed/'}, {en:'eye', cn:'眼睛', pron:'/aɪ/'},
-  {en:'hand', cn:'手', pron:'/hænd/'}, {en:'run', cn:'跑', pron:'/rʌn/'}
+const WORDS=[
+  {en:'red',cn:'红色',pron:'/red/'},{en:'blue',cn:'蓝色',pron:'/bluː/'},
+  {en:'green',cn:'绿色',pron:'/ɡriːn/'},{en:'yellow',cn:'黄色',pron:'/ˈjel.əʊ/'},
+  {en:'one',cn:'一',pron:'/wʌn/'},{en:'two',cn:'二',pron:'/tuː/'},
+  {en:'three',cn:'三',pron:'/θriː/'},{en:'cat',cn:'猫',pron:'/kæt/'},
+  {en:'dog',cn:'狗',pron:'/dɒɡ/'},{en:'bird',cn:'鸟',pron:'/bɜːd/'},
+  {en:'apple',cn:'苹果',pron:'/ˈæp.əl/'},{en:'banana',cn:'香蕉',pron:'/bəˈnɑː.nə/'}
 ];
 
 // ========== 游戏状态 ==========
-let coins = 0, score = 0, lives = 3, combo = 0, maxCombo = 0;
-let marioX = 100, marioY = 0, isJumping = false;
-let timeLeft = 60, timerInterval = null, answerTimer = null;
-let currentWord = null, answeredCount = 0;
-let gameActive = false;
+let coins=0,score=0,lives=3;
+let isBig=false,hasFire=false,isStar=false;
+let gameSpeed=2,marioY=0,isJumping=false;
+let gameActive=false,gamePaused=false;
+let gameLoop=null,spawnTimer=null;
+let enemies=[],bricks=[],items=[];
+let distance=0,wordBricksHit=0;
 
-function shuffle(a) {
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
 // ========== 游戏控制 ==========
-function startGame() {
-  coins = 0; score = 0; lives = 3; combo = 0; maxCombo = 0;
-  marioX = 100; marioY = 0; isJumping = false;
-  timeLeft = 60; answeredCount = 0; gameActive = true;
+function startGame(){
+  coins=0;score=0;lives=3;isBig=false;hasFire=false;isStar=false;
+  gameSpeed=2;distance=0;wordBricksHit=0;
+  enemies=[];bricks=[];items=[];
+  gameActive=true;gamePaused=false;
   
   updateHUD();
-  document.getElementById('combo').classList.remove('show');
+  updateMario();
   
-  // 隐藏所有画面
-  document.querySelectorAll('.screen').forEach(s => s.classList.add('hide'));
-  document.getElementById('popup').classList.remove('show');
-  document.getElementById('princess').style.display = 'none';
-  document.getElementById('bowser').style.display = 'none';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hide'));
+  document.getElementById('word-popup').classList.remove('show');
+  document.getElementById('fire-btn').classList.add('hide');
   
-  // 生成砖块
-  const bricksDiv = document.getElementById('bricks');
-  bricksDiv.innerHTML = '';
-  const shuffled = shuffle([...WORDS]);
-  shuffled.forEach((word, i) => {
-    const brick = document.createElement('div');
-    brick.className = 'brick question';
-    brick.style.left = (10 + i * 5.5) + '%';
-    brick.style.bottom = (38 + (i % 3) * 12) + '%';
-    brick.style.animationDelay = (i * 0.2) + 's';
-    brick.innerHTML = '?';
-    brick.dataset.word = JSON.stringify(word);
-    brick.dataset.index = i;
-    brick.onclick = () => hitBrick(brick);
-    bricksDiv.appendChild(brick);
+  // 清空容器
+  document.getElementById('bricks').innerHTML='';
+  document.getElementById('enemies').innerHTML='';
+  document.getElementById('items').innerHTML='';
+  
+  // 开始游戏循环
+  if(gameLoop)clearInterval(gameLoop);
+  gameLoop=setInterval(gameUpdate,20);
+  
+  // 生成器
+  if(spawnTimer)clearInterval(spawnTimer);
+  spawnTimer=setInterval(spawnThings,2000);
+}
+
+function gameUpdate(){
+  if(!gameActive||gamePaused)return;
+  
+  distance+=gameSpeed;
+  
+  // 移动敌人
+  enemies.forEach((e,i)=>{
+    e.x-=gameSpeed;
+    e.el.style.left=e.x+'px';
+    if(e.x<-50){e.el.remove();enemies.splice(i,1)}
+    
+    // 碰撞检测
+    if(!e.dead&&checkCollision(document.getElementById('mario'),e.el)){
+      if(isStar){
+        killEnemy(e,i);
+      }else if(isJumping&&marioY>0){
+        // 踩死敌人
+        killEnemy(e,i);
+        score+=100;
+        sfxHit();
+      }else{
+        // 受伤
+        hurtMario();
+      }
+    }
   });
   
-  // 生成怪物
-  const enemiesDiv = document.getElementById('enemies');
-  enemiesDiv.innerHTML = '';
-  for (let i = 0; i < 3; i++) {
-    const enemy = document.createElement('div');
-    enemy.className = 'enemy';
-    enemy.textContent = ['🐢', '🍄', '👻'][i];
-    enemy.style.animationDuration = (3 + i) + 's';
-    enemy.style.animationDelay = (i * 1.5) + 's';
-    enemy.style.bottom = (35 + Math.random() * 5) + '%';
-    enemiesDiv.appendChild(enemy);
+  // 移动砖块
+  bricks.forEach((b,i)=>{
+    b.x-=gameSpeed;
+    b.el.style.left=b.x+'px';
+    if(b.x<-100){b.el.remove();bricks.splice(i,1)}
+    
+    // 碰撞检测
+    if(!b.hit&&checkCollision(document.getElementById('mario'),b.el)){
+      hitBrick(b,i);
+    }
+  });
+  
+  // 移动道具
+  items.forEach((item,i)=>{
+    item.x-=gameSpeed;
+    item.el.style.left=item.x+'px';
+    if(item.x<-50){item.el.remove();items.splice(i,1)}
+    
+    if(checkCollision(document.getElementById('mario'),item.el)){
+      getItem(item.type);
+      item.el.remove();
+      items.splice(i,1);
+    }
+  });
+  
+  // 检查胜利
+  if(wordBricksHit>=8){
+    winGame();
+  }
+}
+
+function spawnThings(){
+  if(!gameActive||gamePaused)return;
+  
+  const gameW=document.getElementById('game').offsetWidth;
+  
+  // 随机生成怪物
+  if(Math.random()<0.6){
+    spawnEnemy(gameW+50);
   }
   
-  // 重置马里欧位置
-  updateMarioPos();
-  
-  // 开始计时
-  startTimer();
-}
-
-function startTimer() {
-  if (timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    if (!gameActive) return;
-    timeLeft--;
-    document.getElementById('time').textContent = timeLeft;
-    if (timeLeft <= 0) {
-      gameOver(false);
+  // 随机生成砖块
+  if(Math.random()<0.5){
+    const isWordBrick=Math.random()<0.6;
+    if(isWordBrick){
+      spawnWordBrick(gameW+50);
+    }else{
+      spawnItemBrick(gameW+50);
     }
-  }, 1000);
+  }
 }
 
-function moveMario(dir) {
-  if (!gameActive || isJumping) return;
-  marioX += dir * 60;
-  marioX = Math.max(20, Math.min(marioX, window.innerWidth - 100));
-  updateMarioPos();
+function spawnEnemy(x){
+  const enemy=document.createElement('div');
+  enemy.className='enemy';
+  enemy.innerHTML='<div class="goomba-body"></div><div class="goomba-face"></div><div class="goomba-eye left"></div><div class="goomba-eye right"></div><div class="goomba-brow left"></div><div class="goomba-brow right"></div>';
+  enemy.style.left=x+'px';
+  document.getElementById('enemies').appendChild(enemy);
+  enemies.push({el:enemy,x:x,dead:false});
 }
 
-function jumpMario() {
-  if (!gameActive || isJumping) return;
-  isJumping = true;
-  sfxJump();
+function spawnWordBrick(x){
+  const brick=document.createElement('div');
+  brick.className='brick question';
+  brick.innerHTML='<span class="q">?</span>';
+  brick.style.left=x+'px';
+  document.getElementById('bricks').appendChild(brick);
   
-  const mario = document.getElementById('mario');
-  mario.classList.add('jump');
-  
-  // 检查是否顶到砖块
-  setTimeout(() => checkBrickHit(), 200);
-  
-  setTimeout(() => {
-    mario.classList.remove('jump');
-    isJumping = false;
-  }, 400);
+  const word=WORDS[Math.floor(Math.random()*WORDS.length)];
+  bricks.push({el:brick,x:x,hit:false,word:word,type:'word'});
 }
 
-function updateMarioPos() {
-  document.getElementById('mario').style.left = marioX + 'px';
+function spawnItemBrick(x){
+  const brick=document.createElement('div');
+  brick.className='brick item-brick';
+  brick.innerHTML='<span class="q">?</span>';
+  brick.style.left=x+'px';
+  document.getElementById('bricks').appendChild(brick);
+  
+  const items=['mushroom','flower','star'];
+  const item=items[Math.floor(Math.random()*items.length)];
+  bricks.push({el:brick,x:x,hit:false,item:item,type:'item'});
 }
 
-function checkBrickHit() {
-  const marioRect = document.getElementById('mario').getBoundingClientRect();
-  const bricks = document.querySelectorAll('.brick:not(.hit)');
-  
-  bricks.forEach(brick => {
-    const rect = brick.getBoundingClientRect();
-    if (marioRect.left < rect.right && marioRect.right > rect.left &&
-        marioRect.top < rect.bottom && marioRect.bottom > rect.top) {
-      hitBrick(brick);
-    }
-  });
-}
-
-function hitBrick(brick) {
-  if (!gameActive || brick.classList.contains('hit')) return;
-  
+function hitBrick(brick,index){
+  if(brick.hit)return;
+  brick.hit=true;
+  brick.el.classList.add('broken');
   sfxHit();
-  brick.classList.add('hit');
-  brick.innerHTML = '';
   
-  // 金币弹出
-  const coin = document.createElement('div');
-  coin.className = 'coin-pop';
-  coin.textContent = '🪙';
-  brick.appendChild(coin);
-  setTimeout(() => coin.remove(), 600);
+  if(brick.type==='word'){
+    // 暂停游戏，显示单词
+    gamePaused=true;
+    showWordPopup(brick.word);
+  }else if(brick.type==='item'){
+    // 生成道具
+    spawnItem(brick.x,brick.item);
+    // 金币
+    const coin=document.createElement('div');
+    coin.className='coin';
+    coin.textContent='🪙';
+    coin.style.left=brick.x+'px';
+    coin.style.bottom='65%';
+    document.getElementById('items').appendChild(coin);
+    setTimeout(()=>coin.remove(),600);
+    coins++;
+    sfxCoin();
+  }
   
-  // 显示单词
-  const word = JSON.parse(brick.dataset.word);
-  showWordPopup(word);
+  updateHUD();
 }
 
-function showWordPopup(word) {
-  currentWord = word;
-  gameActive = false;
+function spawnItem(x,type){
+  const itemEl=document.createElement('div');
+  itemEl.className='item';
+  const icons={mushroom:'🍄',flower:'🌸',star:'⭐'};
+  itemEl.textContent=icons[type];
+  itemEl.style.left=x+'px';
+  document.getElementById('items').appendChild(itemEl);
+  items.push({el:itemEl,x:x,type:type});
+}
+
+function getItem(type){
+  sfxPowerUp();
+  showStatus('获得'+{mushroom:'蘑菇！变大了！',flower:'花朵！可以喷火！',star:'星星！无敌了！'}[type]);
   
-  const popup = document.getElementById('popup');
-  document.getElementById('popup-pron').textContent = word.pron;
-  document.getElementById('popup-word').textContent = word.en;
-  document.getElementById('popup-feedback').textContent = '';
-  document.getElementById('timer-fill').style.width = '100%';
+  if(type==='mushroom'){
+    isBig=true;
+    updateMario();
+  }else if(type==='flower'){
+    isBig=true;
+    hasFire=true;
+    updateMario();
+    document.getElementById('fire-btn').classList.remove('hide');
+  }else if(type==='star'){
+    isStar=true;
+    document.getElementById('mario').classList.add('star');
+    setTimeout(()=>{isStar=false;document.getElementById('mario').classList.remove('star')},5000);
+  }
+}
+
+function showWordPopup(word){
+  const popup=document.getElementById('word-popup');
+  document.getElementById('popup-pron').textContent=word.pron;
+  document.getElementById('popup-word').textContent=word.en;
+  document.getElementById('popup-feedback').textContent='';
   
-  // 生成选项
-  const others = WORDS.filter(w => w.en !== word.en);
-  const wrongs = shuffle(others).slice(0, 3).map(w => w.cn);
-  const opts = shuffle([word.cn, ...wrongs]);
+  const others=WORDS.filter(w=>w.en!==word.en);
+  const wrongs=shuffle(others).slice(0,3).map(w=>w.cn);
+  const opts=shuffle([word.cn,...wrongs]);
   
-  const choicesDiv = document.getElementById('popup-choices');
-  choicesDiv.innerHTML = '';
-  opts.forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'choice';
-    btn.textContent = opt;
-    btn.onclick = function() { checkAnswer(this, opt); };
+  const choicesDiv=document.getElementById('popup-choices');
+  choicesDiv.innerHTML='';
+  opts.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='choice';
+    btn.textContent=opt;
+    btn.onclick=function(){checkAnswer(this,opt,word.cn)};
     choicesDiv.appendChild(btn);
   });
   
   popup.classList.add('show');
-  
-  // 答题倒计时
-  let time = 100;
-  if (answerTimer) clearInterval(answerTimer);
-  answerTimer = setInterval(() => {
-    time -= 2;
-    document.getElementById('timer-fill').style.width = time + '%';
-    if (time <= 0) {
-      clearInterval(answerTimer);
-      timeUp();
-    }
-  }, 100);
 }
 
-function timeUp() {
-  document.querySelectorAll('.choice').forEach(b => {
-    b.disabled = true;
-    if (b.textContent === currentWord.cn) b.classList.add('right');
-  });
-  document.getElementById('popup-feedback').innerHTML = '<span style="color:red">⏰ 时间到！答案是：' + currentWord.cn + '</span>';
-  combo = 0;
-  lives--;
-  updateHUD();
+function checkAnswer(btn,ans,correct){
+  document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('popup-feedback');
   
-  setTimeout(() => {
-    document.getElementById('popup').classList.remove('show');
-    if (lives <= 0) gameOver(false);
-    else { gameActive = true; answeredCount++; checkWin(); }
-  }, 1500);
-}
-
-function checkAnswer(btn, ans) {
-  clearInterval(answerTimer);
-  document.querySelectorAll('.choice').forEach(b => b.disabled = true);
-  const fb = document.getElementById('popup-feedback');
-  
-  if (ans === currentWord.cn) {
+  if(ans===correct){
     btn.classList.add('right');
-    combo++;
-    if (combo > maxCombo) maxCombo = combo;
-    
-    const bonus = combo > 1 ? ' (连击x' + combo + '!)' : '';
-    fb.innerHTML = '<span style="color:green">✅ 答对了！' + bonus + '</span>';
+    fb.innerHTML='<span style="color:green">✅ 答对了！继续前进！</span>';
     sfxCorrect();
-    
-    const points = 100 * combo;
-    coins += 10 * combo;
-    score += points;
-    
-    // 显示连击
-    if (combo >= 2) {
-      const comboDiv = document.getElementById('combo');
-      comboDiv.textContent = '🔥 ' + combo + '连击！';
-      comboDiv.classList.add('show');
-    }
-  } else {
+    score+=200;
+    coins+=5;
+    wordBricksHit++;
+  }else{
     btn.classList.add('wrong');
-    document.querySelectorAll('.choice').forEach(b => {
-      if (b.textContent === currentWord.cn) b.classList.add('right');
-    });
-    fb.innerHTML = '<span style="color:red">❌ 不对，答案是：' + currentWord.cn + '</span>';
+    document.querySelectorAll('.choice').forEach(b=>{if(b.textContent===correct)b.classList.add('right')});
+    fb.innerHTML='<span style="color:red">❌ 不对，答案是：'+correct+'</span>';
     sfxWrong();
-    combo = 0;
-    document.getElementById('combo').classList.remove('show');
     lives--;
   }
   
   updateHUD();
-  answeredCount++;
   
-  setTimeout(() => {
-    document.getElementById('popup').classList.remove('show');
-    if (lives <= 0) gameOver(false);
-    else checkWin();
-  }, 1500);
+  setTimeout(()=>{
+    document.getElementById('word-popup').classList.remove('show');
+    gamePaused=false;
+    if(lives<=0)loseGame();
+  },1500);
 }
 
-function checkWin() {
-  const remaining = document.querySelectorAll('.brick:not(.hit)');
-  if (remaining.length === 0 || answeredCount >= WORDS.length) {
-    gameOver(true);
-  } else {
-    gameActive = true;
-  }
+function killEnemy(enemy,index){
+  enemy.dead=true;
+  enemy.el.classList.add('flat');
+  score+=100;
+  setTimeout(()=>{enemy.el.remove();enemies.splice(index,1)},500);
 }
 
-function gameOver(win) {
-  gameActive = false;
-  clearInterval(timerInterval);
-  clearInterval(answerTimer);
+function hurtMario(){
+  if(isStar)return;
   
-  if (win) {
-    sfxWin();
-    document.getElementById('princess').style.display = 'block';
-    document.getElementById('win-coins').textContent = coins;
-    document.getElementById('win-score').textContent = score;
-    document.getElementById('win-combo').textContent = maxCombo;
-    setTimeout(() => document.getElementById('win-screen').classList.remove('hide'), 1000);
-  } else {
-    document.getElementById('bowser').style.display = 'block';
-    document.getElementById('fail-score').textContent = score;
-    setTimeout(() => document.getElementById('fail-screen').classList.remove('hide'), 500);
+  if(isBig){
+    isBig=false;
+    hasFire=false;
+    updateMario();
+    document.getElementById('fire-btn').classList.add('hide');
+    showStatus('变小了！');
+  }else{
+    lives--;
+    showStatus('哎呀！');
+    if(lives<=0)loseGame();
   }
+  updateHUD();
 }
 
-function updateHUD() {
-  document.getElementById('coins').textContent = coins;
-  document.getElementById('score').textContent = score;
-  document.getElementById('lives').textContent = lives;
+function shootFire(){
+  if(!hasFire)return;
+  sfxFire();
+  const mario=document.getElementById('mario');
+  const fireball=document.createElement('div');
+  fireball.className='fireball';
+  fireball.style.left=(mario.offsetLeft+40)+'px';
+  fireball.style.bottom=(40+marioY)+'%';
+  document.getElementById('game').appendChild(fireball);
+  
+  // 检测火球击中敌人
+  const checkFireHit=setInterval(()=>{
+    enemies.forEach((e,i)=>{
+      if(!e.dead&&checkCollision(fireball,e.el)){
+        killEnemy(e,i);
+        fireball.remove();
+        clearInterval(checkFireHit);
+      }
+    });
+  },50);
+  
+  setTimeout(()=>{fireball.remove();clearInterval(checkFireHit)},1000);
 }
 
-// ========== 键盘控制 ==========
-document.addEventListener('keydown', e => {
-  if (!gameActive) return;
-  switch(e.code) {
-    case 'ArrowLeft': case 'KeyA': e.preventDefault(); moveMario(-1); break;
-    case 'ArrowRight': case 'KeyD': e.preventDefault(); moveMario(1); break;
-    case 'ArrowUp': case 'Space': case 'KeyW': e.preventDefault(); jumpMario(); break;
+function jump(){
+  if(!gameActive||isJumping||gamePaused)return;
+  isJumping=true;
+  sfxJump();
+  document.getElementById('mario').classList.add('jump');
+  marioY=35;
+  setTimeout(()=>{marioY=0},250);
+  setTimeout(()=>{document.getElementById('mario').classList.remove('jump');isJumping=false},500);
+}
+
+function checkCollision(el1,el2){
+  const r1=el1.getBoundingClientRect();
+  const r2=el2.getBoundingClientRect();
+  return!(r1.right<r2.left||r1.left>r2.right||r1.bottom<r2.top||r1.top>r2.bottom);
+}
+
+function updateMario(){
+  const mario=document.getElementById('mario');
+  if(isBig)mario.classList.add('big');
+  else mario.classList.remove('big');
+}
+
+function updateHUD(){
+  document.getElementById('coins').textContent=coins;
+  document.getElementById('score').textContent=score;
+  document.getElementById('lives').textContent=lives;
+}
+
+function showStatus(msg){
+  const status=document.createElement('div');
+  status.className='status-msg';
+  status.textContent=msg;
+  document.getElementById('game').appendChild(status);
+  setTimeout(()=>status.remove(),2000);
+}
+
+function winGame(){
+  gameActive=false;
+  clearInterval(gameLoop);
+  clearInterval(spawnTimer);
+  sfxCorrect();
+  document.getElementById('win-coins').textContent=coins;
+  document.getElementById('win-score').textContent=score;
+  document.getElementById('win-screen').classList.remove('hide');
+}
+
+function loseGame(){
+  gameActive=false;
+  clearInterval(gameLoop);
+  clearInterval(spawnTimer);
+  document.getElementById('fail-score').textContent=score;
+  document.getElementById('fail-screen').classList.remove('hide');
+}
+
+// 键盘控制
+document.addEventListener('keydown',e=>{
+  if(e.code==='ArrowUp'||e.code==='Space'||e.code==='KeyW'){
+    e.preventDefault();
+    jump();
+  }else if(e.code==='KeyF'||e.code==='ControlLeft'){
+    e.preventDefault();
+    shootFire();
   }
 });
-
-// 点击马里欧也可以跳跃
-document.getElementById('mario').onclick = () => jumpMario();
 </script>
 </body>
 </html>
