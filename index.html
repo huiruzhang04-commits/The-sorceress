@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🍄 马里欧单词大冒险</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:linear-gradient(180deg,#5C94FC 0%,#5C94FC 70%,#E86A17 70%,#E86A17 100%);min-height:100vh;overflow:hidden;touch-action:none}
+
+/* 游戏容器 */
+#game-container{max-width:800px;margin:0 auto;height:100vh;position:relative;overflow:hidden}
+
+/* 顶部信息栏 */
+#hud{position:absolute;top:0;left:0;right:0;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.3);z-index:100;color:#fff;font-size:16px;font-weight:bold}
+#hud .coin{display:flex;align-items:center;gap:5px}
+#hud .coin::before{content:"🪙";font-size:20px}
+#hud .score::before{content:"⭐";margin-right:3px}
+#hud .lives::before{content:"❤️";margin-right:3px}
+
+/* 马里欧 */
+#mario{position:absolute;bottom:20%;left:50px;width:50px;height:60px;font-size:45px;line-height:60px;text-align:center;transition:transform .1s;z-index:10}
+#mario.jump{animation:jump .5s ease}
+#mario.hit{animation:hit .3s ease}
+@keyframes jump{0%,100%{transform:translateY(0)}50%{transform:translateY(-120px)}}
+@keyframes hit{0%,100%{transform:scale(1)}50%{transform:scale(1.2) rotate(-10deg)}}
+
+/* 砖块 */
+.brick{position:absolute;width:50px;height:50px;background:linear-gradient(135deg,#B85C38,#8B4513);border:3px solid #5C3317;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:transform .1s;box-shadow:0 4px 8px rgba(0,0,0,.3)}
+.brick:active{transform:translateY(4px)}
+.brick.broken{background:linear-gradient(135deg,#888,#666);border-color:#444;pointer-events:none}
+.brick .q-mark{color:#FFD700;font-weight:bold;text-shadow:2px 2px 0 #B8860B}
+
+/* 单词弹窗 */
+#word-popup{position:absolute;top:30%;left:50%;transform:translateX(-50%) scale(0);background:#fff;border:4px solid #E86A17;border-radius:16px;padding:20px 30px;text-align:center;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.3);transition:transform .3s cubic-bezier(.68,-.55,.265,1.55)}
+#word-popup.show{transform:translateX(-50%) scale(1)}
+#word-popup .word-en{font-size:32px;font-weight:bold;color:#E86A17;margin-bottom:10px}
+#word-popup .word-pron{font-size:14px;color:#888;margin-bottom:15px}
+#word-popup .choices{display:flex;flex-direction:column;gap:10px}
+#word-popup .choice-btn{padding:12px 20px;font-size:18px;border:2px solid #ddd;border-radius:10px;background:#f9f9f9;cursor:pointer;transition:all .2s}
+#word-popup .choice-btn:hover{background:#FFE4B5;border-color:#E86A17}
+#word-popup .choice-btn.correct{background:#90EE90;border-color:#228B22;color:#006400}
+#word-popup .choice-btn.wrong{background:#FFB6C1;border-color:#DC143C;color:#8B0000}
+
+/* 地面 */
+#ground{position:absolute;bottom:0;left:0;right:0;height:20%;background:linear-gradient(180deg,#E86A17,#8B4513);border-top:4px solid #5C3317}
+.ground-pattern{position:absolute;bottom:0;width:100%;height:100%;background-image:repeating-linear-gradient(90deg,transparent,transparent 48px,#5C3317 48px,#5C3317 52px);opacity:.3}
+
+/* 开始/结束画面 */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#5C94FC,#5C94FC 60%,#E86A17 60%);z-index:200;color:#fff;text-align:center;padding:20px}
+.screen.hidden{display:none}
+.screen h1{font-size:42px;margin-bottom:10px;text-shadow:3px 3px 0 #E86A17}
+.screen .subtitle{font-size:18px;margin-bottom:30px;opacity:.9}
+.screen .mario-big{font-size:80px;margin:20px 0;animation:float 2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.btn-start{padding:15px 50px;font-size:24px;font-weight:bold;border:none;border-radius:50px;background:linear-gradient(135deg,#E86A17,#FF6B35);color:#fff;cursor:pointer;box-shadow:0 6px 20px rgba(232,106,23,.4);transition:transform .2s;margin:10px}
+.btn-start:hover{transform:scale(1.05)}
+.btn-start:active{transform:scale(.95)}
+
+/* 关卡信息 */
+#level-info{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;font-weight:bold;color:#fff;text-shadow:3px 3px 0 #E86A17;z-index:150;opacity:0;transition:opacity .3s;pointer-events:none}
+#level-info.show{opacity:1}
+
+/* 粒子效果 */
+.particle{position:absolute;pointer-events:none;font-size:20px;animation:particle-float 1s ease-out forwards}
+@keyframes particle-float{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-100px) scale(1.5);opacity:0}}
+
+/* 进度条 */
+#progress-bar{position:absolute;top:50px;left:20px;right:20px;height:8px;background:rgba(255,255,255,.3);border-radius:4px;z-index:100;overflow:hidden}
+#progress-fill{height:100%;background:linear-gradient(90deg,#FFD700,#FFA500);border-radius:4px;transition:width .3s}
+
+/* 响应式 */
+@media(max-width:600px){
+  #hud{font-size:14px;padding:8px 15px}
+  .screen h1{font-size:32px}
+  #word-popup .word-en{font-size:24px}
+  #word-popup .choice-btn{font-size:16px;padding:10px 15px}
+}
+</style>
+</head>
+<body>
+<div id="game-container">
+
+<!-- HUD -->
+<div id="hud">
+  <div class="coin">× <span id="coins">0</span></div>
+  <div class="score">得分: <span id="score">0</span></div>
+  <div class="lives">× <span id="lives">3</span></div>
+</div>
+<div id="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
+
+<!-- 马里欧 -->
+<div id="mario">🍄</div>
+
+<!-- 砖块容器 -->
+<div id="bricks-container"></div>
+
+<!-- 地面 -->
+<div id="ground"><div class="ground-pattern"></div></div>
+
+<!-- 单词弹窗 -->
+<div id="word-popup">
+  <div class="word-en" id="popup-word">Apple</div>
+  <div class="word-pron" id="popup-pron">/ˈæp.əl/</div>
+  <div class="choices" id="popup-choices"></div>
+</div>
+
+<!-- 关卡信息 -->
+<div id="level-info">世界 1-1</div>
+
+<!-- 开始画面 -->
+<div class="screen" id="start-screen">
+  <h1>🍄 马里欧单词大冒险</h1>
+  <p class="subtitle">顶砖块 → 学单词 → 救公主！</p>
+  <div class="mario-big">🍄</div>
+  <button class="btn-start" onclick="startGame()">开始冒险！</button>
+  <button class="btn-start" onclick="showModeSelect()" style="background:linear-gradient(135deg,#4CAF50,#45a049)">选择模式</button>
+</div>
+
+<!-- 模式选择 -->
+<div class="screen hidden" id="mode-screen">
+  <h1>选择游戏模式</h1>
+  <div class="mario-big">🎯</div>
+  <button class="btn-start" onclick="startGame('adventure')">🏰 冒险模式</button>
+  <button class="btn-start" onclick="startGame('challenge')" style="background:linear-gradient(135deg,#FF5722,#E64A19)">⚡ 挑战模式</button>
+  <button class="btn-start" onclick="startGame('review')" style="background:linear-gradient(135deg,#9C27B0,#7B1FA2)">📚 错题复习</button>
+  <button class="btn-start" onclick="showStart()" style="background:linear-gradient(135deg,#757575,#616161);font-size:18px">← 返回</button>
+</div>
+
+<!-- 游戏结束 -->
+<div class="screen hidden" id="gameover-screen">
+  <h1 id="gameover-title">游戏结束</h1>
+  <p class="subtitle" id="gameover-subtitle"></p>
+  <div class="mario-big" id="gameover-emoji">😢</div>
+  <div style="font-size:20px;margin:20px 0">
+    <div>🪙 金币: <span id="final-coins">0</span></div>
+    <div>⭐ 得分: <span id="final-score">0</span></div>
+    <div>📖 学会单词: <span id="final-words">0</span></div>
+  </div>
+  <button class="btn-start" onclick="restartGame()">再玩一次</button>
+  <button class="btn-start" onclick="showStart()" style="background:linear-gradient(135deg,#757575,#616161);font-size:18px">返回主页</button>
+</div>
+
+<!-- 通关画面 -->
+<div class="screen hidden" id="win-screen">
+  <h1>🎉 恭喜通关！</h1>
+  <p class="subtitle">你救出了公主！</p>
+  <div class="mario-big">👸</div>
+  <div style="font-size:20px;margin:20px 0">
+    <div>🪙 金币: <span id="win-coins">0</span></div>
+    <div>⭐ 得分: <span id="win-score">0</span></div>
+    <div>📖 学会单词: <span id="win-words">0</span></div>
+  </div>
+  <button class="btn-start" onclick="nextWorld()">下一世界 →</button>
+  <button class="btn-start" onclick="showStart()" style="background:linear-gradient(135deg,#757575,#616161);font-size:18px">返回主页</button>
+</div>
+
+</div>
+
+<script>
+// ═══ 单词库（适合7岁）═══
+const WORD_BANK = {
+  colors: [
+    {en:'red',cn:'红色',pron:'/red/'},{en:'blue',cn:'蓝色',pron:'/bluː/'},
+    {en:'green',cn:'绿色',pron:'/ɡriːn/'},{en:'yellow',cn:'黄色',pron:'/ˈjel.əʊ/'},
+    {en:'black',cn:'黑色',pron:'/blæk/'},{en:'white',cn:'白色',pron:'/waɪt/'},
+    {en:'pink',cn:'粉色',pron:'/pɪŋk/'},{en:'purple',cn:'紫色',pron:'/ˈpɜː.pəl/'}
+  ],
+  numbers: [
+    {en:'one',cn:'一',pron:'/wʌn/'},{en:'two',cn:'二',pron:'/tuː/'},
+    {en:'three',cn:'三',pron:'/θriː/'},{en:'four',cn:'四',pron:'/fɔːr/'},
+    {en:'five',cn:'五',pron:'/faɪv/'},{en:'six',cn:'六',pron:'/sɪks/'},
+    {en:'seven',cn:'七',pron:'/ˈsev.ən/'},{en:'eight',cn:'八',pron:'/eɪt/'},
+    {en:'nine',cn:'九',pron:'/naɪn/'},{en:'ten',cn:'十',pron:'/ten/'}
+  ],
+  animals: [
+    {en:'cat',cn:'猫',pron:'/kæt/'},{en:'dog',cn:'狗',pron:'/dɒɡ/'},
+    {en:'bird',cn:'鸟',pron:'/bɜːd/'},{en:'fish',cn:'鱼',pron:'/fɪʃ/'},
+    {en:'duck',cn:'鸭子',pron:'/dʌk/'},{en:'pig',cn:'猪',pron:'/pɪɡ/'},
+    {en:'bear',cn:'熊',pron:'/beər/'},{en:'lion',cn:'狮子',pron:'/ˈlaɪ.ən/'}
+  ],
+  fruits: [
+    {en:'apple',cn:'苹果',pron:'/ˈæp.əl/'},{en:'banana',cn:'香蕉',pron:'/bəˈnɑː.nə/'},
+    {en:'orange',cn:'橙子',pron:'/ˈɒr.ɪndʒ/'},{en:'grape',cn:'葡萄',pron:'/ɡreɪp/'},
+    {en:'peach',cn:'桃子',pron:'/piːtʃ/'},{en:'pear',cn:'梨',pron:'/peər/'},
+    {en:'watermelon',cn:'西瓜',pron:'/ˈwɔː.təˌmel.ən/'},{en:'strawberry',cn:'草莓',pron:'/ˈstrɔː.bər.i/'}
+  ],
+  body: [
+    {en:'head',cn:'头',pron:'/hed/'},{en:'eye',cn:'眼睛',pron:'/aɪ/'},
+    {en:'nose',cn:'鼻子',pron:'/nəʊz/'},{en:'mouth',cn:'嘴巴',pron:'/maʊθ/'},
+    {en:'ear',cn:'耳朵',pron:'/ɪər/'},{en:'hand',cn:'手',pron:'/hænd/'},
+    {en:'foot',cn:'脚',pron:'/fʊt/'},{en:'leg',cn:'腿',pron:'/leɡ/'}
+  ],
+  family: [
+    {en:'father',cn:'爸爸',pron:'/ˈfɑː.ðər/'},{en:'mother',cn:'妈妈',pron:'/ˈmʌð.ər/'},
+    {en:'brother',cn:'哥哥/弟弟',pron:'/ˈbrʌð.ər/'},{en:'sister',cn:'姐姐/妹妹',pron:'/ˈsɪs.tər/'},
+    {en:'grandpa',cn:'爷爷',pron:'/ˈɡræn.pɑː/'},{en:'grandma',cn:'奶奶',pron:'/ˈɡræn.mɑː/'}
+  ],
+  actions: [
+    {en:'run',cn:'跑',pron:'/rʌn/'},{en:'jump',cn:'跳',pron:'/dʒʌmp/'},
+    {en:'eat',cn:'吃',pron:'/iːt/'},{en:'drink',cn:'喝',pron:'/drɪŋk/'},
+    {en:'sleep',cn:'睡觉',pron:'/sliːp/'},{en:'play',cn:'玩',pron:'/pleɪ/'},
+    {en:'read',cn:'读',pron:'/riːd/'},{en:'write',cn:'写',pron:'/raɪt/'}
+  ]
+};
+
+// ═══ 游戏状态 ═══
+let gameState = {
+  mode: 'adventure',
+  world: 1,
+  level: 1,
+  coins: 0,
+  score: 0,
+  lives: 3,
+  currentWord: null,
+  wordsLearned: [],
+  wrongWords: [],
+  totalWords: 0,
+  isPaused: false
+};
+
+// ═══ 工具函数 ═══
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getAllWords() {
+  return Object.values(WORD_BANK).flat();
+}
+
+function getWrongWords() {
+  const stored = localStorage.getItem('mario_wrong_words');
+  return stored ? JSON.parse(stored) : [];
+}
+
+function saveWrongWord(word) {
+  let wrong = getWrongWords();
+  if (!wrong.find(w => w.en === word.en)) {
+    wrong.push(word);
+    localStorage.setItem('mario_wrong_words', JSON.stringify(wrong));
+  }
+}
+
+// ═══ 画面切换 ═══
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function showStart() {
+  showScreen('start-screen');
+}
+
+function showModeSelect() {
+  showScreen('mode-screen');
+}
+
+// ═══ 游戏初始化 ═══
+function startGame(mode = 'adventure') {
+  gameState = {
+    mode: mode,
+    world: 1,
+    level: 1,
+    coins: 0,
+    score: 0,
+    lives: 3,
+    currentWord: null,
+    wordsLearned: [],
+    wrongWords: [],
+    totalWords: 0,
+    isPaused: false
+  };
+  
+  showScreen(''); // 隐藏所有画面
+  updateHUD();
+  showLevelInfo();
+  setTimeout(() => startLevel(), 1500);
+}
+
+function showLevelInfo() {
+  const info = document.getElementById('level-info');
+  info.textContent = gameState.mode === 'adventure' 
+    ? `世界 ${gameState.world}-${gameState.level}`
+    : gameState.mode === 'challenge' ? '挑战模式！' : '错题复习';
+  info.classList.add('show');
+  setTimeout(() => info.classList.remove('show'), 1500);
+}
+
+// ═══ 关卡生成 ═══
+function startLevel() {
+  const container = document.getElementById('bricks-container');
+  container.innerHTML = '';
+  
+  let words;
+  if (gameState.mode === 'review') {
+    words = getWrongWords();
+    if (words.length === 0) {
+      alert('还没有错题哦！先去玩冒险模式吧~');
+      showStart();
+      return;
+    }
+    words = shuffle(words).slice(0, Math.min(10, words.length));
+  } else {
+    words = shuffle(getAllWords()).slice(0, 10);
+  }
+  
+  gameState.currentWords = words;
+  gameState.totalWords = words.length;
+  gameState.answeredWords = 0;
+  
+  // 生成砖块
+  words.forEach((word, i) => {
+    const brick = document.createElement('div');
+    brick.className = 'brick';
+    brick.innerHTML = '<span class="q-mark">?</span>';
+    brick.style.left = `${15 + (i % 5) * 18}%`;
+    brick.style.bottom = `${35 + Math.floor(i / 5) * 20}%`;
+    brick.dataset.index = i;
+    brick.onclick = () => hitBrick(i);
+    container.appendChild(brick);
+  });
+  
+  updateProgress();
+}
+
+// ═══ 顶砖块 ═══
+function hitBrick(index) {
+  if (gameState.isPaused) return;
+  
+  const bricks = document.querySelectorAll('.brick');
+  const brick = bricks[index];
+  if (brick.classList.contains('broken')) return;
+  
+  // 马里欧动画
+  const mario = document.getElementById('mario');
+  mario.classList.add('jump');
+  setTimeout(() => mario.classList.remove('jump'), 500);
+  
+  // 砖块动画
+  brick.classList.add('broken');
+  brick.innerHTML = '';
+  
+  // 显示单词
+  const word = gameState.currentWords[index];
+  showWordPopup(word);
+}
+
+// ═══ 显示单词选择题 ═══
+function showWordPopup(word) {
+  gameState.isPaused = true;
+  gameState.currentWord = word;
+  
+  document.getElementById('popup-word').textContent = word.en;
+  document.getElementById('popup-pron').textContent = word.pron;
+  
+  // 生成选项（1正确+3错误）
+  const allWords = getAllWords().filter(w => w.en !== word.en);
+  const wrongOptions = shuffle(allWords).slice(0, 3).map(w => w.cn);
+  const options = shuffle([word.cn, ...wrongOptions]);
+  
+  const choicesDiv = document.getElementById('popup-choices');
+  choicesDiv.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = opt;
+    btn.onclick = () => checkAnswer(opt, word.cn, btn);
+    choicesDiv.appendChild(btn);
+  });
+  
+  document.getElementById('word-popup').classList.add('show');
+}
+
+// ═══ 检查答案 ═══
+function checkAnswer(selected, correct, btn) {
+  const buttons = document.querySelectorAll('.choice-btn');
+  buttons.forEach(b => {
+    b.disabled = true;
+    if (b.textContent === correct) b.classList.add('correct');
+  });
+  
+  if (selected === correct) {
+    // 答对了！
+    gameState.coins += 10;
+    gameState.score += 100;
+    gameState.answeredWords++;
+    
+    if (!gameState.wordsLearned.find(w => w.en === gameState.currentWord.en)) {
+      gameState.wordsLearned.push(gameState.currentWord);
+    }
+    
+    // 粒子效果
+    spawnParticles('🪙', 5);
+    
+    // 马里欧开心
+    document.getElementById('mario').classList.add('hit');
+    setTimeout(() => document.getElementById('mario').classList.remove('hit'), 300);
+    
+    setTimeout(() => closePopup(), 1000);
+  } else {
+    // 答错了
+    btn.classList.add('wrong');
+    gameState.lives--;
+    saveWrongWord(gameState.currentWord);
+    
+    if (!gameState.wrongWords.find(w => w.en === gameState.currentWord.en)) {
+      gameState.wrongWords.push(gameState.currentWord);
+    }
+    
+    spawnParticles('💔', 3);
+    
+    setTimeout(() => {
+      closePopup();
+      if (gameState.lives <= 0) {
+        gameOver();
+      }
+    }, 1500);
+  }
+  
+  updateHUD();
+  updateProgress();
+}
+
+function closePopup() {
+  document.getElementById('word-popup').classList.remove('show');
+  gameState.isPaused = false;
+  
+  // 检查是否完成
+  if (gameState.answeredWords >= gameState.totalWords) {
+    setTimeout(() => levelComplete(), 500);
+  }
+}
+
+// ═══ 粒子效果 ═══
+function spawnParticles(emoji, count) {
+  const container = document.getElementById('game-container');
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.textContent = emoji;
+    p.style.left = `${randInt(30, 70)}%`;
+    p.style.top = `${randInt(30, 50)}%`;
+    container.appendChild(p);
+    setTimeout(() => p.remove(), 1000);
+  }
+}
+
+// ═══ 更新UI ═══
+function updateHUD() {
+  document.getElementById('coins').textContent = gameState.coins;
+  document.getElementById('score').textContent = gameState.score;
+  document.getElementById('lives').textContent = gameState.lives;
+}
+
+function updateProgress() {
+  const pct = gameState.totalWords > 0 ? (gameState.answeredWords / gameState.totalWords * 100) : 0;
+  document.getElementById('progress-fill').style.width = `${pct}%`;
+}
+
+// ═══ 关卡完成 ═══
+function levelComplete() {
+  if (gameState.mode === 'challenge') {
+    gameOver(true);
+    return;
+  }
+  
+  if (gameState.level >= 5) {
+    // 通关一个世界
+    showScreen('win-screen');
+    document.getElementById('win-coins').textContent = gameState.coins;
+    document.getElementById('win-score').textContent = gameState.score;
+    document.getElementById('win-words').textContent = gameState.wordsLearned.length;
+  } else {
+    // 下一关
+    gameState.level++;
+    showLevelInfo();
+    setTimeout(() => startLevel(), 1500);
+  }
+}
+
+// ═══ 游戏结束 ═══
+function gameOver(win = false) {
+  showScreen('gameover-screen');
+  
+  if (win) {
+    document.getElementById('gameover-title').textContent = '🎉 挑战完成！';
+    document.getElementById('gameover-subtitle').textContent = '你真棒！';
+    document.getElementById('gameover-emoji').textContent = '🏆';
+  } else {
+    document.getElementById('gameover-title').textContent = '游戏结束';
+    document.getElementById('gameover-subtitle').textContent = '不要灰心，再试一次！';
+    document.getElementById('gameover-emoji').textContent = '😢';
+  }
+  
+  document.getElementById('final-coins').textContent = gameState.coins;
+  document.getElementById('final-score').textContent = gameState.score;
+  document.getElementById('final-words').textContent = gameState.wordsLearned.length;
+}
+
+// ═══ 重新开始 ═══
+function restartGame() {
+  startGame(gameState.mode);
+}
+
+function nextWorld() {
+  gameState.world++;
+  gameState.level = 1;
+  gameState.lives = 3;
+  showScreen('');
+  showLevelInfo();
+  setTimeout(() => startLevel(), 1500);
+}
+
+// ═══ 键盘控制 ═══
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' || e.code === 'ArrowUp') {
+    e.preventDefault();
+    // 找到第一个未顶碎的砖块
+    const bricks = document.querySelectorAll('.brick:not(.broken)');
+    if (bricks.length > 0 && !gameState.isPaused) {
+      const idx = parseInt(bricks[0].dataset.index);
+      hitBrick(idx);
+    }
+  }
+});
+
+// ═══ 初始化 ═══
+showStart();
+</script>
+</body>
+</html>
