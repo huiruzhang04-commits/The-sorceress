@@ -39,9 +39,9 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;touch-action:no
 .brick.hit{transform:scale(.9);opacity:.5}
 
 /* 砖块高度 */
-.brick-h1{bottom:35%}
-.brick-h2{bottom:50%}
-.brick-h3{bottom:65%}
+.brick-h1{bottom:28%}
+.brick-h2{bottom:38%}
+.brick-h3{bottom:48%}
 
 /* ========== 马里欧 - 使用CSS像素艺术 ========== */
 .mario{position:absolute;bottom:15%;left:15%;width:32px;height:32px;z-index:100;image-rendering:pixelated}
@@ -141,9 +141,9 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;touch-action:no
 .story{background:rgba(0,0,0,.5);padding:20px;border-radius:15px;margin:10px;max-width:400px}
 
 /* ========== 控制按钮 ========== */
-.controls{position:fixed;bottom:15px;left:50%;transform:translateX(-50%);z-index:500;display:flex;gap:10px}
-.ctrl-btn{width:55px;height:55px;background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.6);border-radius:50%;font-size:24px;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(10px)}
-.ctrl-btn:active{background:rgba(255,255,255,.5);transform:scale(0.9)}
+.controls{position:fixed;bottom:15px;left:0;right:0;z-index:500;display:flex;justify-content:space-between;padding:0 15px;pointer-events:none}
+.ctrl-btn{width:55px;height:55px;background:rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.6);border-radius:50%;font-size:24px;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(10px);pointer-events:auto}
+.ctrl-btn:active,.ctrl-btn.active{background:rgba(255,255,255,.5);transform:scale(0.9)}
 .ctrl-btn.fire-btn{background:rgba(255,69,0,.5);border-color:#FF4500}
 
 /* ========== 状态提示 ========== */
@@ -234,10 +234,11 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;touch-action:no
 </div>
 
 <div class="controls">
-  <div class="ctrl-btn" onclick="moveLeft()">⬅️</div>
-  <div class="ctrl-btn" onclick="jump()">⬆️</div>
-  <div class="ctrl-btn" onclick="moveRight()">➡️</div>
+  <div class="controls">
+  <div class="ctrl-btn" id="left-btn">⬅️</div>
   <div class="ctrl-btn fire-btn hide" id="fire-btn" onclick="shootFire()">🔥</div>
+  <div class="ctrl-btn" id="right-btn">➡️</div>
+</div>
 </div>
 
 </div>
@@ -652,7 +653,13 @@ function getItem(type){
 function showWordPopup(word){
   const popup=document.getElementById('word-popup');
   document.getElementById('popup-pron').textContent=word.pron;
-  document.getElementById('popup-word').textContent=word.en;
+  document.getElementById('popup-word').textContent=word.en+' ';
+  // 添加🔊按钮
+  const spkBtn=document.createElement('button');
+  spkBtn.textContent='🔊';spkBtn.style.cssText='font-size:18px;background:none;border:none;cursor:pointer';
+  spkBtn.onclick=pronounceWord;
+  const wordEl=document.getElementById('popup-word');
+  wordEl.appendChild(spkBtn);
   document.getElementById('popup-feedback').textContent='';
   
   const others=WORDS.filter(w=>w.en!==word.en);
@@ -671,6 +678,7 @@ function showWordPopup(word){
   });
   
   popup.classList.add('show');
+  autoPronounce(word);
 }
 
 function checkAnswer(btn,ans,correct){
@@ -745,7 +753,12 @@ function showWordPopupForEnemy(enemy,index){
   
   const popup=document.getElementById('word-popup');
   document.getElementById('popup-pron').textContent=word.pron;
-  document.getElementById('popup-word').textContent=word.en;
+  document.getElementById('popup-word').textContent=word.en+' ';
+  const spkBtn=document.createElement('button');
+  spkBtn.textContent='🔊';spkBtn.style.cssText='font-size:18px;background:none;border:none;cursor:pointer';
+  spkBtn.onclick=pronounceWord;
+  const wordEl=document.getElementById('popup-word');
+  wordEl.appendChild(spkBtn);
   document.getElementById('popup-feedback').textContent='';
   
   const others=WORDS.filter(w=>w.en!==word.en);
@@ -764,6 +777,7 @@ function showWordPopupForEnemy(enemy,index){
   });
   
   popup.classList.add('show');
+  autoPronounce(word);
 }
 
 function killEnemy(enemy,index){
@@ -773,7 +787,26 @@ function killEnemy(enemy,index){
   setTimeout(()=>{enemy.el.remove();enemies.splice(index,1)},500);
 }
 
+function sfxHurt(){sfx(200,.3,'sawtooth',0.12);setTimeout(()=>sfx(150,.3,'sawtooth',0.1),100)}
+function pronounceWord(){
+  const word=document.getElementById('popup-word').textContent.replace('🔊','').trim();
+  if('speechSynthesis' in window&&word){
+    const u=new SpeechSynthesisUtterance(word);
+    u.lang='en-US';u.rate=0.8;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }
+}
+function autoPronounce(word){
+  if('speechSynthesis' in window){
+    const u=new SpeechSynthesisUtterance(word.en);
+    u.lang='en-US';u.rate=0.8;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }
+}
 function hurtMario(){
+  sfxHurt();
   if(isStar)return;
   if(isInvincible)return; // 无敌时间不受伤
   
@@ -910,19 +943,33 @@ document.addEventListener('keydown',e=>{
   else if(e.code==='KeyF'){e.preventDefault();shootFire()}
 });
 
-// 触摸控制
-document.addEventListener('touchstart',e=>{
-  const touch=e.touches[0];
-  const x=touch.clientX;
-  const y=touch.clientY;
-  const w=window.innerWidth;
-  const h=window.innerHeight;
-  
-  if(y>h*0.7){
-    if(x<w*0.3)moveLeft();
-    else if(x>w*0.7)moveRight();
-    else jump();
-  }
+// 触摸控制 - 左右按钮长按 + 游戏区域点击跳跃
+let leftHold=null,rightHold=null;
+const leftBtn=document.getElementById('left-btn');
+const rightBtn=document.getElementById('right-btn');
+function startLeft(){if(leftHold)return;leftBtn.classList.add('active');moveLeft();leftHold=setInterval(moveLeft,80)}
+function stopLeft(){if(leftHold){clearInterval(leftHold);leftHold=null}leftBtn.classList.remove('active')}
+function startRight(){if(rightHold)return;rightBtn.classList.add('active');moveRight();rightHold=setInterval(moveRight,80)}
+function stopRight(){if(rightHold){clearInterval(rightHold);rightHold=null}rightBtn.classList.remove('active')}
+leftBtn.addEventListener('touchstart',e=>{e.preventDefault();startLeft()});
+leftBtn.addEventListener('touchend',e=>{e.preventDefault();stopLeft()});
+leftBtn.addEventListener('touchcancel',stopLeft);
+rightBtn.addEventListener('touchstart',e=>{e.preventDefault();startRight()});
+rightBtn.addEventListener('touchend',e=>{e.preventDefault();stopRight()});
+rightBtn.addEventListener('touchcancel',stopRight);
+leftBtn.addEventListener('mousedown',startLeft);
+leftBtn.addEventListener('mouseup',stopLeft);
+leftBtn.addEventListener('mouseleave',stopLeft);
+rightBtn.addEventListener('mousedown',startRight);
+rightBtn.addEventListener('mouseup',stopRight);
+rightBtn.addEventListener('mouseleave',stopRight);
+document.getElementById('game').addEventListener('touchstart',e=>{
+  if(e.target.closest('.ctrl-btn'))return;
+  e.preventDefault();jump();
+});
+document.getElementById('game').addEventListener('click',e=>{
+  if(e.target.closest('.ctrl-btn'))return;
+  jump();
 });
 </script>
 </body>
