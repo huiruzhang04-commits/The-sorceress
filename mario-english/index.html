@@ -234,11 +234,9 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;touch-action:no
 </div>
 
 <div class="controls">
-  <div class="controls">
   <div class="ctrl-btn" id="left-btn">⬅️</div>
   <div class="ctrl-btn fire-btn hide" id="fire-btn" onclick="shootFire()">🔥</div>
   <div class="ctrl-btn" id="right-btn">➡️</div>
-</div>
 </div>
 
 </div>
@@ -964,11 +962,11 @@ rightBtn.addEventListener('mousedown',startRight);
 rightBtn.addEventListener('mouseup',stopRight);
 rightBtn.addEventListener('mouseleave',stopRight);
 document.getElementById('game').addEventListener('touchstart',e=>{
-  if(e.target.closest('.ctrl-btn'))return;
+  if(e.target.closest('.ctrl-btn')||e.target.closest('.screen')||e.target.closest('.word-popup')||e.target.closest('.btn'))return;
   e.preventDefault();jump();
 });
 document.getElementById('game').addEventListener('click',e=>{
-  if(e.target.closest('.ctrl-btn'))return;
+  if(e.target.closest('.ctrl-btn')||e.target.closest('.screen')||e.target.closest('.word-popup')||e.target.closest('.btn'))return;
   jump();
 });
 </script>
