@@ -281,6 +281,8 @@ let enemies=[],bricks=[],items=[],pipes=[];
 let wordBricksHit=0,combo=0;
 let gameLoop=null,spawnTimer=null;
 let scrollOffset=0;
+let isInvincible=false; // 无敌时间
+let invincibleTimer=null;
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
@@ -312,9 +314,21 @@ function startGame(){
   marioX=window.innerWidth*0.15;
   marioY=0;
   isJumping=false;
+  isInvincible=true; // 开始时无敌3秒
   
   updateHUD();
   updateMario();
+  
+  // 无敌闪烁效果
+  const mario=document.getElementById('mario');
+  mario.style.opacity='0.5';
+  
+  // 3秒后取消无敌
+  if(invincibleTimer)clearTimeout(invincibleTimer);
+  invincibleTimer=setTimeout(()=>{
+    isInvincible=false;
+    mario.style.opacity='1';
+  },3000);
   
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hide'));
   document.getElementById('word-popup').classList.remove('show');
@@ -469,7 +483,7 @@ function spawnChunk(){
   }else if(chunkType===3){
     // 管道 + 敌人
     spawnPipe(startX);
-    setTimeout(()=>spawnEnemy(startX+100),500);
+    setTimeout(()=>spawnEnemyFar(startX+200),500);
   }
 }
 
@@ -501,9 +515,9 @@ function spawnThings(){
   
   const gameW=window.innerWidth;
   
-  // 生成怪物
-  if(Math.random()<0.5){
-    spawnEnemy(gameW+50);
+  // 生成怪物 - 从更远的地方生成，让玩家能看到
+  if(Math.random()<0.4){
+    spawnEnemy(gameW+400); // 敌人从屏幕外400px开始
   }
   
   // 生成金币
@@ -519,8 +533,21 @@ function spawnEnemy(x){
   const type=Math.random()<0.7?'goomba':'koopa';
   enemy.className='enemy enemy-'+type;
   enemy.style.left=x+'px';
+  // 添加emoji让敌人更明显
+  const emoji=document.createElement('span');
+  emoji.textContent='🍄';
+  emoji.style.fontSize='28px';
+  emoji.style.position='absolute';
+  emoji.style.top='2px';
+  emoji.style.left='2px';
+  enemy.appendChild(emoji);
   document.getElementById('enemies').appendChild(enemy);
   enemies.push({el:enemy,x:x,dead:false,type:type});
+}
+
+function spawnEnemyFar(x){
+  // 敌人从更远的地方生成，有足够时间反应
+  return spawnEnemy(x + Math.random() * 200 + 100);
 }
 
 function spawnCoin(x){
@@ -664,16 +691,35 @@ function killEnemy(enemy,index){
 
 function hurtMario(){
   if(isStar)return;
+  if(isInvincible)return; // 无敌时间不受伤
   
   if(isBig){
     isBig=false;hasFire=false;
     updateMario();
     document.getElementById('fire-btn').classList.add('hide');
     showStatus('变小了！');
+    // 受伤后短暂无敌
+    isInvincible=true;
+    const mario=document.getElementById('mario');
+    mario.style.opacity='0.5';
+    setTimeout(()=>{
+      isInvincible=false;
+      mario.style.opacity='1';
+    },1500);
   }else{
     lives--;
     showStatus('哎呀！');
     if(lives<=0)loseGame();
+    // 死亡后短暂无敌再重生
+    if(lives>0){
+      isInvincible=true;
+      const mario=document.getElementById('mario');
+      mario.style.opacity='0.5';
+      setTimeout(()=>{
+        isInvincible=false;
+        mario.style.opacity='1';
+      },1500);
+    }
   }
   updateHUD();
 }
