@@ -283,6 +283,7 @@ let gameLoop=null,spawnTimer=null;
 let scrollOffset=0;
 let isInvincible=false; // 无敌时间
 let invincibleTimer=null;
+let currentEnemyIndex=-1; // 当前正在问答的敌人索引（-1表示没有）
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
@@ -346,7 +347,7 @@ function startGame(){
   gameLoop=requestAnimationFrame(gameUpdate);
   
   if(spawnTimer)clearInterval(spawnTimer);
-  spawnTimer=setInterval(spawnThings,3000);
+  spawnTimer=setInterval(spawnThings,5000); // 降低生成频率：3秒→5秒
 }
 
 function generateLevel(){
@@ -385,7 +386,7 @@ function gameUpdate(){
     return;
   }
   
-  const speed=2;
+  const speed=1; // 降低速度：2→1像素/帧
   scrollOffset+=speed;
   
   // 水平移动
@@ -408,9 +409,19 @@ function gameUpdate(){
     if(e.x<-50){e.el.remove();enemies.splice(i,1)}
     
     if(!e.dead&&checkHit(mario,e.el)){
-      if(isStar){killEnemy(e,i)}
-      else if(isJumping&&marioY>0){killEnemy(e,i);score+=100;sfxCoin()}
-      else{hurtMario()}
+      if(isStar){
+        killEnemy(e,i)
+      }
+      else if(isJumping&&marioY>0){
+        // 踩死敌人 - 触发单词问答
+        e.stomped=true;
+        e.el.classList.add('flat');
+        gamePaused=true;
+        showWordPopupForEnemy(e,i);
+      }
+      else{
+        hurtMario()
+      }
     }
   });
   
@@ -530,17 +541,22 @@ function spawnThings(){
 
 function spawnEnemy(x){
   const enemy=document.createElement('div');
-  const type=Math.random()<0.7?'goomba':'koopa';
+  // 随机选择敌人类型：乌龟、怪物、螃蟹、食人花
+  const types=['koopa','goomba','crab','plant'];
+  const type=types[Math.floor(Math.random()*types.length)];
   enemy.className='enemy enemy-'+type;
   enemy.style.left=x+'px';
-  // 添加emoji让敌人更明显
+  
+  // 根据敌人类型设置不同的emoji
   const emoji=document.createElement('span');
-  emoji.textContent='🍄';
+  const emojis={koopa:'🐢',goomba:'👾',crab:'🦀',plant:'🥀'};
+  emoji.textContent=emojis[type];
   emoji.style.fontSize='28px';
   emoji.style.position='absolute';
   emoji.style.top='2px';
   emoji.style.left='2px';
   enemy.appendChild(emoji);
+  
   document.getElementById('enemies').appendChild(enemy);
   enemies.push({el:enemy,x:x,dead:false,type:type});
 }
@@ -569,13 +585,14 @@ function hitBrick(brick,index){
   brick.el.classList.add('hit');
   sfxBump();
   
-  if(brick.type==='word'){
-    gamePaused=true;
-    showWordPopup(brick.word);
-  }else if(brick.type==='item'){
-    spawnItem(brick.x,brick.item);
+  // 只获得道具或金币，不触发单词问答
+  if(brick.type==='item'){
+    // 掉落道具（蘑菇/花朵/星星）
+    const itemTypes=['mushroom','flower','star'];
+    const itemType=itemTypes[Math.floor(Math.random()*itemTypes.length)];
+    spawnItem(brick.x,itemType);
     
-    // 金币弹出
+    // 金币弹出效果
     for(let i=0;i<3;i++){
       setTimeout(()=>{
         const coin=document.createElement('div');
@@ -589,6 +606,21 @@ function hitBrick(brick,index){
     }
     
     coins+=3;
+    sfxCoin();
+  }else{
+    // 普通砖块：掉金币
+    for(let i=0;i<2;i++){
+      setTimeout(()=>{
+        const coin=document.createElement('div');
+        coin.className='coin';
+        coin.textContent='🪙';
+        coin.style.left=(brick.x+i*15)+'px';
+        coin.style.bottom='40%';
+        document.getElementById('items').appendChild(coin);
+        setTimeout(()=>coin.remove(),800);
+      },i*100);
+    }
+    coins+=2;
     sfxCoin();
   }
   
@@ -645,6 +677,8 @@ function checkAnswer(btn,ans,correct){
   document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
   const fb=document.getElementById('popup-feedback');
   
+  const isEnemyCase=currentEnemyIndex!==-1;
+  
   if(ans===correct){
     btn.classList.add('right');
     combo++;
@@ -655,7 +689,20 @@ function checkAnswer(btn,ans,correct){
     const points=100*combo;
     coins+=10*combo;
     score+=points;
-    wordBricksHit++;
+    
+    if(isEnemyCase){
+      // 敌人情况：消灭敌人
+      if(currentEnemyIndex>=0&&currentEnemyIndex<enemies.length){
+        const e=enemies[currentEnemyIndex];
+        e.el.remove();
+        enemies.splice(currentEnemyIndex,1);
+        score+=100;
+      }
+      currentEnemyIndex=-1;
+    }else{
+      // 砖块情况：原来的逻辑
+      wordBricksHit++;
+    }
     
     if(combo>=2){
       const comboEl=document.createElement('div');
@@ -670,7 +717,17 @@ function checkAnswer(btn,ans,correct){
     fb.innerHTML='<span style="color:red">❌ 不对，答案是：'+correct+'</span>';
     sfxWrong();
     combo=0;
-    lives--;
+    
+    if(isEnemyCase){
+      // 敌人情况：敌人复活，扣命
+      if(currentEnemyIndex>=0&&currentEnemyIndex<enemies.length){
+        const e=enemies[currentEnemyIndex];
+        e.stomped=false;
+        e.el.classList.remove('flat');
+      }
+      currentEnemyIndex=-1;
+      lives--;
+    }
   }
   
   updateHUD();
@@ -680,6 +737,33 @@ function checkAnswer(btn,ans,correct){
     gamePaused=false;
     if(lives<=0)loseGame();
   },1500);
+}
+
+function showWordPopupForEnemy(enemy,index){
+  currentEnemyIndex=index;
+  const word=WORDS[Math.floor(Math.random()*WORDS.length)];
+  
+  const popup=document.getElementById('word-popup');
+  document.getElementById('popup-pron').textContent=word.pron;
+  document.getElementById('popup-word').textContent=word.en;
+  document.getElementById('popup-feedback').textContent='';
+  
+  const others=WORDS.filter(w=>w.en!==word.en);
+  const wrongs=shuffle(others).slice(0,3).map(w=>w.cn);
+  const opts=shuffle([word.cn,...wrongs]);
+  
+  const choicesDiv=document.getElementById('popup-choices');
+  choicesDiv.innerHTML='';
+  
+  opts.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='choice';
+    btn.textContent=opt;
+    btn.onclick=function(){checkAnswer(this,opt,word.cn)};
+    choicesDiv.appendChild(btn);
+  });
+  
+  popup.classList.add('show');
 }
 
 function killEnemy(enemy,index){
