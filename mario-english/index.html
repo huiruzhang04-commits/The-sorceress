@@ -493,7 +493,6 @@ function gameUpdate(){
   const speed=LEVELS[currentLevel].speed; // 关卡速度
   scrollOffset+=speed;
   
-  const mario=document.getElementById("mario");
   // 重力系统 - 更新马里奥垂直位置
   if(isJumping||marioY>0){
     marioVY+=0.5; // 重力加速度
@@ -513,7 +512,7 @@ function gameUpdate(){
   if(marioX>maxX)marioX=maxX;
   
   // 更新马里欧位置
-  const mario=document.getElementById('mario');
+  mario=document.getElementById('mario');
   mario.style.left=marioX+'px';
   mario.style.bottom=(15+marioY)+'%';
   
@@ -826,7 +825,7 @@ function spawnFlagpole(x){
 
 function checkFlagpole(){
   if(flagpoleX===-1||levelComplete)return;
-  const mario=document.getElementById('mario');
+  mario=document.getElementById('mario');
   const fp=document.getElementById('flagpole');
   if(!fp)return;
   if(checkHit(mario,fp)){
@@ -839,7 +838,7 @@ function checkFlagpole(){
 }
 
 function playFlagpoleAnimation(){
-  const mario=document.getElementById('mario');
+  mario=document.getElementById('mario');
   const fp=document.getElementById('flagpole');
   
   // 1. 马里奥爬旗杆动画
@@ -915,7 +914,7 @@ function nextLevel(){
   const cc=document.getElementById('course-clear');
   if(cc)cc.remove();
   
-  const mario=document.getElementById('mario');
+  mario=document.getElementById('mario');
   mario.style.transition='none';
   mario.style.left=(window.innerWidth*0.15)+'px';
   mario.style.bottom='15%';
@@ -990,7 +989,7 @@ function spawnPiranhaPipe(x){
 }
 
 function checkPipeInteraction(){
-  const mario=document.getElementById('mario');
+  mario=document.getElementById('mario');
   pipes.forEach((p,i)=>{
     if(checkHit(mario,p.el)){
       if(p.type==='warp' && keys.down){
@@ -1007,7 +1006,7 @@ function checkPipeInteraction(){
 function doWarp(pipe,index){
   gamePaused=true;
   sfxWarp();
-  const mario=document.getElementById('mario');
+  mario=document.getElementById('mario');
   mario.style.opacity='0';
   
   setTimeout(()=>{
@@ -1201,7 +1200,7 @@ function checkAnswer(btn,ans,correct){
   if(ans===correct){
     // 答对后2秒无敌时间
     isInvincible=true;
-    const mario=document.getElementById('mario');
+    mario=document.getElementById('mario');
     mario.classList.add('invincible');
     clearTimeout(invincibleTimer);
     invincibleTimer=setTimeout(()=>{
@@ -1387,7 +1386,7 @@ function hurtMario(){
     showStatus('变小了！');
     // 受伤后短暂无敌
     isInvincible=true;
-    const mario=document.getElementById('mario');
+    mario=document.getElementById('mario');
     mario.style.opacity='0.5';
     setTimeout(()=>{
       isInvincible=false;
@@ -1400,7 +1399,7 @@ function hurtMario(){
     // 死亡后短暂无敌再重生
     if(lives>0){
       isInvincible=true;
-      const mario=document.getElementById('mario');
+      mario=document.getElementById('mario');
       mario.style.opacity='0.5';
       setTimeout(()=>{
         isInvincible=false;
@@ -1413,7 +1412,7 @@ function hurtMario(){
 
 function shootFire(){
   if(!hasFire)return;
-  const mario=document.getElementById('mario');
+  mario=document.getElementById('mario');
   const fireball=document.createElement('div');
   fireball.className='fireball';
   fireball.style.left=(mario.offsetLeft+40)+'px';
@@ -1451,7 +1450,7 @@ function isStomp(marioEl,enemyEl){
 }
 
 function updateMario(){
-  const mario=document.getElementById('mario');
+  mario=document.getElementById('mario');
   if(isBig){
     mario.classList.add('big');
     mario.style.width='40px';
@@ -1507,12 +1506,12 @@ function jump(){
   marioVY=-8; // 向上速度
   sfxJump();
   
-  const mario=document.getElementById('mario');
+  mario=document.getElementById('mario');
   mario.classList.add('jump');
 }
 
 function updateMarioPosition(){
-  const mario=document.getElementById('mario');
+  mario=document.getElementById('mario');
   mario.style.left=marioX+'px';
 }
 
