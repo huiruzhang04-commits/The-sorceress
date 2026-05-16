@@ -394,11 +394,7 @@ const LEVEL_MAP={
   ground:[
     {x:0,y:538,width:800,height:60}
   ],
-  pipes:[
-    {x:200,y:451,width:60,height:87},
-    {x:400,y:409,width:60,height:129},
-    {x:600,y:366,width:60,height:172}
-  ],
+  pipes:[],
   bricks:[
     {x:100,y:365,type:'normal'},{x:140,y:365,type:'normal'},{x:180,y:365,type:'normal'},
     {x:300,y:365,type:'question',item:true},{x:340,y:365,type:'question',item:true},
@@ -501,7 +497,7 @@ function gameUpdate(){
   if(isJumping||marioY>0){
     marioVY+=0.5; // 重力加速度
     marioY+=marioVY;
-    if(marioY<=0){
+    if(marioY<=0&&marioVY>0){ // 只有下落时才着地
       marioY=0;marioVY=0;isJumping=false;
       mario.classList.remove('jump');
     }
@@ -1047,6 +1043,8 @@ function spawnThings(){
 // ========== BGM ==========
 function startBGM(){
   if(bgmMuted)return;
+  // 确保AudioContext已激活（移动端需要用户交互后resume）
+  if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
   bgmPlaying=true;
   // 经典SMB地上关BGM音符序列（简化版）
   const melody=[
@@ -1060,7 +1058,7 @@ function startBGM(){
   bgmInterval=setInterval(()=>{
     if(!bgmPlaying||bgmMuted)return;
     const freq=melody[noteIndex%melody.length];
-    if(freq>0)sfx(freq,.15,'square',0.03);
+    if(freq>0)sfx(freq,.15,'square',0.08);
     noteIndex++;
   },180);
 }
