@@ -205,7 +205,11 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;touch-action:no
 .warp-pipe{position:relative}
 .pipe-warp-icon{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:14px;animation:warpPulse 1s infinite}
 @keyframes warpPulse{0%,100%{opacity:.5}50%{opacity:1}}
-.piranha{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:24px;animation:piranhaPop .3s ease}
+.piranha{position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:28px;height:32px;background:linear-gradient(to bottom,#228B22 0%,#32CD32 30%,#FF1493 30%,#DC143C 50%,#228B22 50%,#32CD32 80%);border-radius:50% 50% 10% 10%;box-shadow:0 4px 8px rgba(0,0,0,.3);animation:piranhaPop .3s ease}
+.piranha::before,.piranha::after{content:'';position:absolute;top:-8px;width:12px;height:16px;background:#fff;border-radius:50%;border:2px solid #000}
+.piranha::before{left:2px}
+.piranha::after{right:2px}
+.piranha::before::after,.piranha::after::after{content:'';position:absolute;top:50%;left:50%;width:4px;height:4px;background:#000;border-radius:50%;transform:translate(-50%,-50%)}
 @keyframes piranhaPop{0%{transform:translateX(-50%) scaleY(0);transform-origin:bottom}100%{transform:translateX(-50%) scaleY(1);transform-origin:bottom}}
 
 /* ========== 静音按钮 ========== */
@@ -495,10 +499,10 @@ function gameUpdate(){
   
   // 重力系统 - 更新马里奥垂直位置
   if(isJumping||marioY>0){
-    marioVY+=0.5; // 重力加速度
+    marioVY-=0.5; // 重力加速度（向下递减）
     marioY+=marioVY;
     if(marioY<=0&&marioVY>0){ // 只有下落时才着地
-      marioY=0;marioVY=0;isJumping=false;
+      marioY=0;marioVY=8;isJumping=false;
       mario.classList.remove('jump');
     }
   }
@@ -531,7 +535,7 @@ function gameUpdate(){
         e.stomped=true;
         e.el.classList.add('flat');
         // 踩敌后弹起
-        marioVY=-6;
+        marioVY=6;
         gamePaused=true;
         showWordPopupForEnemy(e,i);
       }
@@ -974,7 +978,7 @@ function spawnPiranhaPipe(x){
   // 食人花
   const piranha=document.createElement('div');
   piranha.className='piranha';
-  piranha.textContent='🥀';
+  // piranha.textContent=''; // CSS绘制的食人花，不需要文本
   pipe.appendChild(piranha);
   // 食人花定期探头
   let showPiranha=true;
@@ -1503,7 +1507,7 @@ function moveRight(){marioX+=30;updateMarioPosition()}
 function jump(){
   if(isJumping)return;
   isJumping=true;
-  marioVY=-8; // 向上速度
+  marioVY=8; // 向上速度（正值向上）
   sfxJump();
   
   mario=document.getElementById('mario');
