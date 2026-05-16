@@ -51,6 +51,10 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;touch-action:no
 .mario.star{animation:starFlash .15s infinite}
 @keyframes starFlash{0%,100%{filter:brightness(1) hue-rotate(0)}50%{filter:brightness(1.5) hue-rotate(60deg)}}
 
+/* 无敌闪亮效果 */
+.mario.invincible{animation:invincibleShine .3s infinite}
+@keyframes invincibleShine{0%,100%{filter:brightness(1.3) hue-rotate(0deg)}50%{filter:brightness(1.5) hue-rotate(30deg)}}
+
 /* 马里欧像素精灵 - 使用box-shadow绘制 */
 .mario-sprite{width:2px;height:2px;background:transparent;position:absolute;top:0;left:0;
   box-shadow:
@@ -517,7 +521,12 @@ function spawnChunk(){
   }else if(chunkType===3){
     // 管道 + 敌人
     spawnPipe(startX);
-    setTimeout(()=>spawnEnemyFar(startX+200),500);
+    
+    // 检查附近是否有路障，如果有则不生成敌人（避免答完题一下来就死）
+    const tooCloseToBarrier=wordBlocks.some(wb=>Math.abs(wb.x-(startX+200))<250);
+    if(!tooCloseToBarrier){
+      setTimeout(()=>spawnEnemyFar(startX+200),500);
+    }
   }else if(chunkType===4){
     // 单词路障
     spawnWordBlock(startX);
@@ -692,6 +701,16 @@ function checkAnswer(btn,ans,correct){
   const isBlockCase=currentBlockIndex!==-1;
   
   if(ans===correct){
+    // 答对后2秒无敌时间
+    isInvincible=true;
+    const mario=document.getElementById('mario');
+    mario.classList.add('invincible');
+    clearTimeout(invincibleTimer);
+    invincibleTimer=setTimeout(()=>{
+      isInvincible=false;
+      mario.classList.remove('invincible');
+    },2000);
+    
     btn.classList.add('right');
     combo++;
     const bonus=combo>1?' (连击x'+combo+')':'';
