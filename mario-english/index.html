@@ -179,6 +179,7 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#5C94FC;touch-action:no
 <div id="hud">
   <div>🍄 单词冒险</div>
   <div>🪙 <span id="coins">0</span></div>
+  <div>👾 <span id="defeated">0</span>/10</div>
   <div>❤️ <span id="lives">3</span></div>
   <div>⭐ <span id="score">0</span></div>
 </div>
@@ -277,7 +278,7 @@ let marioX=0,marioY=0;
 let isJumping=false;
 let keys={left:false,right:false,up:false};
 let enemies=[],bricks=[],items=[],pipes=[];
-let wordBricksHit=0,combo=0;
+let enemiesDefeated=0,combo=0;
 let gameLoop=null,spawnTimer=null;
 let scrollOffset=0;
 let isInvincible=false; // 无敌时间
@@ -298,7 +299,7 @@ const LEVEL_MAP={
   ],
   bricks:[
     {x:100,y:365,type:'normal'},{x:140,y:365,type:'normal'},{x:180,y:365,type:'normal'},
-    {x:300,y:365,type:'question',word:true},{x:340,y:365,type:'question',word:true},
+    {x:300,y:365,type:'question',item:true},{x:340,y:365,type:'question',item:true},
     {x:500,y:250,type:'normal'},{x:540,y:250,type:'normal'},{x:580,y:250,type:'normal'},
     {x:700,y:365,type:'question',item:true}
   ]
@@ -307,7 +308,7 @@ const LEVEL_MAP={
 // ========== 游戏控制 ==========
 function startGame(){
   coins=0;score=0;lives=3;isBig=false;hasFire=false;isStar=false;
-  wordBricksHit=0;combo=0;scrollOffset=0;
+  enemiesDefeated=0;combo=0;scrollOffset=0;
   enemies=[];bricks=[];items=[];pipes=[];
   gameActive=true;gamePaused=false;
   
@@ -372,8 +373,7 @@ function generateLevel(){
     brick.style.bottom=(35+(538-b.y-40)/600*50)+'%';
     document.getElementById('bricks').appendChild(brick);
     
-    const brickData={el:brick,x:b.x*scale,hit:false,type:b.word?'word':b.item?'item':'normal'};
-    if(b.word)brickData.word=WORDS[Math.floor(Math.random()*WORDS.length)];
+    const brickData={el:brick,x:b.x*scale,hit:false,type:b.item?'item':'normal'};
     if(b.item)brickData.item=['mushroom','flower','star'][Math.floor(Math.random()*3)];
     bricks.push(brickData);
   });
@@ -457,7 +457,7 @@ function gameUpdate(){
     spawnChunk();
   }
   
-  if(wordBricksHit>=15){
+  if(enemiesDefeated>=10){
     winGame();
     return;
   }
@@ -486,7 +486,7 @@ function spawnChunk(){
     spawnBrick(startX+90,'question','brick-h2',true);
   }else if(chunkType===2){
     // 道具砖
-    spawnBrick(startX,'item','brick-h1',false,true);
+    spawnBrick(startX,'item','brick-h1',true);
     for(let i=1;i<4;i++){
       spawnBrick(startX+i*45,'normal','brick-h1');
     }
@@ -497,14 +497,13 @@ function spawnChunk(){
   }
 }
 
-function spawnBrick(x,type,heightClass,hasWord=false,hasItem=false){
+function spawnBrick(x,type,heightClass,hasItem=false){
   const brick=document.createElement('div');
   brick.className='brick '+(type==='question'?'brick-question':type==='item'?'brick-item':'brick-normal')+' '+heightClass;
   brick.style.left=x+'px';
   document.getElementById('bricks').appendChild(brick);
   
-  const brickData={el:brick,x:x,hit:false,type:hasWord?'word':hasItem?'item':'normal'};
-  if(hasWord)brickData.word=WORDS[Math.floor(Math.random()*WORDS.length)];
+  const brickData={el:brick,x:x,hit:false,type:hasItem?'item':'normal'};
   if(hasItem)brickData.item=['mushroom','flower','star'][Math.floor(Math.random()*3)];
   bricks.push(brickData);
 }
@@ -648,37 +647,6 @@ function getItem(type){
   }
 }
 
-function showWordPopup(word){
-  const popup=document.getElementById('word-popup');
-  document.getElementById('popup-pron').textContent=word.pron;
-  document.getElementById('popup-word').textContent=word.en+' ';
-  // 添加🔊按钮
-  const spkBtn=document.createElement('button');
-  spkBtn.textContent='🔊';spkBtn.style.cssText='font-size:18px;background:none;border:none;cursor:pointer';
-  spkBtn.onclick=pronounceWord;
-  const wordEl=document.getElementById('popup-word');
-  wordEl.appendChild(spkBtn);
-  document.getElementById('popup-feedback').textContent='';
-  
-  const others=WORDS.filter(w=>w.en!==word.en);
-  const wrongs=shuffle(others).slice(0,3).map(w=>w.cn);
-  const opts=shuffle([word.cn,...wrongs]);
-  
-  const choicesDiv=document.getElementById('popup-choices');
-  choicesDiv.innerHTML='';
-  
-  opts.forEach(opt=>{
-    const btn=document.createElement('button');
-    btn.className='choice';
-    btn.textContent=opt;
-    btn.onclick=function(){checkAnswer(this,opt,word.cn)};
-    choicesDiv.appendChild(btn);
-  });
-  
-  popup.classList.add('show');
-  autoPronounce(word);
-}
-
 function checkAnswer(btn,ans,correct){
   document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
   const fb=document.getElementById('popup-feedback');
@@ -703,11 +671,9 @@ function checkAnswer(btn,ans,correct){
         e.el.remove();
         enemies.splice(currentEnemyIndex,1);
         score+=100;
+        enemiesDefeated++;
       }
       currentEnemyIndex=-1;
-    }else{
-      // 砖块情况：原来的逻辑
-      wordBricksHit++;
     }
     
     if(combo>=2){
@@ -884,6 +850,7 @@ function updateHUD(){
   document.getElementById('coins').textContent=coins;
   document.getElementById('score').textContent=score;
   document.getElementById('lives').textContent=lives;
+  document.getElementById('defeated').textContent=enemiesDefeated;
 }
 
 function showStatus(msg){
